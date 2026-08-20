@@ -27,6 +27,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -37,14 +40,15 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
-        # ※もしVite等でリポジトリ名をパスに含める必要がある場合は環境変数が必要になることがあります
+        run: npm run build:pages
+        env:
+          # 公開したGoサーバーのURLをRepository Variable VITE_API_URLに設定してください。
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # ビルド成果物の出力ディレクトリを指定（Viteなら 'dist'、CRAなら 'build'）
-          path: "./dist"
+          path: "./dist-pages"
 
   deploy:
     environment:
