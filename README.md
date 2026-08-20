@@ -14,6 +14,6 @@ Auxilia Battle PrototypeのReactクライアントです。
 Actionsは `npm run build:pages` で `dist-pages` を生成して公開します。GitHubのRepository Settingsで次を設定してください。
 
 - Pages → Source: `GitHub Actions`
-- Actions variables → `VITE_API_URL`: 公開済みGoサーバーのHTTPS URL
+- Actions variables → `VITE_API_URL`: `https://auxilia-web.trap.show`（未設定時もこのURLを使用）
 
-Goサーバー側の `ALLOWED_ORIGINS` には `https://hackathon25winter24.github.io` を指定します。
+Goサーバー側の `ALLOWED_ORIGINS` には、実際にフロントエンドを配信するOriginを指定します。

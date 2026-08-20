@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8081";
+const API = (process.env.NEXT_PUBLIC_API_URL ?? "https://auxilia-web.trap.show").replace(/\/+$/, "");
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 type Guest = { id:string; name:string; token?:string; selection:string[]; matchId?:string; queued:boolean };
 type Attack = { name:string; cost:number; power:number; range:number; target:string };
