@@ -5,6 +5,7 @@
 body { margin:0; background:var(--paper); color:var(--ink); font-family:Arial,"Noto Sans JP",sans-serif; }
 button,input { font:inherit; }
 .app { min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(360px,46vw); grid-template-rows:auto 1fr auto; overflow:hidden; }
+.app.entrance-frame{grid-template-rows:auto auto minmax(0,1fr) auto}
 .brand { grid-column:1/-1; padding:24px 4vw; font-weight:950; letter-spacing:-.05em; font-size:25px; border-bottom:2px solid var(--ink); display:flex; align-items:center; }
 .brand span { font-size:11px; letter-spacing:.16em; margin-left:14px; font-weight:700; }
 .brand i { margin-left:auto; font:700 10px monospace; letter-spacing:.15em; font-style:normal; background:var(--ink);color:#fff;padding:8px 12px; }
