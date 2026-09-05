@@ -346,14 +346,21 @@ export default function Home() {
         event.target instanceof HTMLTextAreaElement
       )
         return;
-      const delta = KEY_DIRECTIONS[event.key.toLowerCase()];
+      const key = event.key.toLowerCase();
+      if (key === "e") {
+        if (event.repeat || !myTurn || busy) return;
+        event.preventDefault();
+        setMode((current) => (current === "move" ? "attack" : "move"));
+        return;
+      }
+      const delta = KEY_DIRECTIONS[key];
       if (!delta) return;
       event.preventDefault();
       inputDirection(...delta);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [active, inputDirection, match]);
+  }, [active, busy, inputDirection, match, myTurn]);
   async function endTurn() {
     if (!match) return;
     setBusy(true);

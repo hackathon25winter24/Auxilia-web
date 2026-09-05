@@ -627,12 +627,12 @@ button:disabled {
   bottom: 7%;
   filter: drop-shadow(2px 4px 1px rgba(0, 0, 0, 0.5));
 }
-.board .enemy img {
-  filter: hue-rotate(320deg) drop-shadow(2px 4px 1px var(--orange));
-}
 .board .player-one img {
   transform: scaleX(-1);
   filter: drop-shadow(2px 4px 1px rgba(0, 0, 0, 0.5));
+}
+.board .enemy img {
+  filter: none;
 }
 .board .active {
   box-shadow: inset 0 0 0 5px var(--lime);
@@ -1021,6 +1021,36 @@ button:disabled {
   background: transparent;
   font-size: 36px;
   cursor: pointer;
+}
+.character-attacks {
+  margin-bottom: 16px;
+}
+.character-attacks > h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.character-attack-list {
+  display: grid;
+  gap: 8px;
+}
+.character-attack-list article {
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #bbb;
+}
+.character-attack-list header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.character-attack-list header span {
+  flex: none;
+  font: 900 11px monospace;
+}
+.character-attack-list p {
+  margin: 5px 0 0;
+  line-height: 1.45;
+  font-size: 12px;
 }
 .passive-detail {
   padding: 16px;

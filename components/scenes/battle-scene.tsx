@@ -22,6 +22,13 @@ import type {
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
+const ATTACK_TARGET_LABELS: Record<string, string> = {
+  enemy: "敵",
+  ally: "味方",
+  any: "敵・味方",
+  cell: "マス",
+};
+
 type BattleSceneProps = {
   match: Match;
   guest: Guest;
@@ -323,13 +330,13 @@ export function BattleScene({
                           className={mode === "move" ? "on" : ""}
                           onClick={() => setMode("move")}
                         >
-                          移動
+                          移動（E）
                         </button>
                         <button
                           className={mode === "attack" ? "on" : ""}
                           onClick={() => setMode("attack")}
                         >
-                          攻撃
+                          攻撃（E）
                         </button>
                       </div>
                       {mode === "move" ? (
@@ -431,6 +438,41 @@ export function BattleScene({
               </div>
             ) : (
               <>
+                <section className="character-attacks">
+                  <h3>技</h3>
+                  <div className="character-attack-list">
+                    {inspectedDefinition?.attacks.map((attack) => (
+                      <article key={attack.name}>
+                        <header>
+                          <b>{attack.name}</b>
+                          <span>COST {attack.cost}</span>
+                        </header>
+                        <p>
+                          対象：
+                          {ATTACK_TARGET_LABELS[attack.target] ?? attack.target}
+                          ／ 射程：{attack.range} ／
+                          {attack.power < 0
+                            ? ` 回復：${Math.abs(attack.power)}`
+                            : ` 威力：${attack.power}`}
+                        </p>
+                        {attack.effect && (
+                          <p>
+                            追加効果：
+                            {EFFECT_DESCRIPTIONS[attack.effect] ??
+                              attack.effect}
+                            {attack.effectChance
+                              ? `（発生率 ${attack.effectChance}%）`
+                              : ""}
+                          </p>
+                        )}
+                        {attack.tile && <p>設置マス：{attack.tile}</p>}
+                        {attack.clearDebuffs && (
+                          <p>対象のデバフを解除します。</p>
+                        )}
+                      </article>
+                    )) ?? <p>技の情報はありません。</p>}
+                  </div>
+                </section>
                 <article className="passive-detail">
                   <span>PASSIVE</span>
                   <h3>{inspectedDefinition?.passiveName || "パッシブなし"}</h3>
