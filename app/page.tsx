@@ -17,6 +17,7 @@ import { request } from "@/lib/api";
 import { BGMManager, SEManager, type SEName } from "@/lib/audio";
 import { KEY_DIRECTIONS } from "@/lib/game";
 import type { Definition, Guest, Match, Position } from "@/lib/types";
+import { useEventLogQueue } from "@/hooks/use-event-log-queue";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -49,6 +50,11 @@ export default function Home() {
   const controllerRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ offsetX: number; offsetY: number } | null>(null);
   const soundedRevisionRef = useRef(0);
+  const {
+    displayedEvent,
+    ingest: ingestEvents,
+    reset: resetEvents,
+  } = useEventLogQueue();
   const loadDefinitions = useCallback(async () => {
     const items = await request<Definition[]>("/api/characters");
     setDefinitions(items);
@@ -60,13 +66,17 @@ export default function Home() {
     setSelected(me.selection);
     return me;
   }, []);
-  const syncMatch = useCallback((state: Match) => {
-    const receivedAt = Date.now();
-    setMatch(state);
-    setMatchReceivedAt(receivedAt);
-    setNow(receivedAt);
-    return state;
-  }, []);
+  const syncMatch = useCallback(
+    (state: Match) => {
+      const receivedAt = Date.now();
+      ingestEvents(state);
+      setMatch(state);
+      setMatchReceivedAt(receivedAt);
+      setNow(receivedAt);
+      return state;
+    },
+    [ingestEvents],
+  );
   const loadMatch = useCallback(
     async (id: string, t = token) =>
       syncMatch(await request<Match>(`/api/matches/${id}`, {}, t)),
@@ -113,7 +123,11 @@ export default function Home() {
     return () => window.removeEventListener("resize", resetControllerPosition);
   }, []);
   useEffect(() => {
-    BGMManager.play(match?.started && !match.finished ? "battle" : "menu");
+    if (match?.finished) {
+      BGMManager.stop();
+      return;
+    }
+    BGMManager.play(match?.started ? "battle" : "menu");
   }, [match?.finished, match?.started]);
   useEffect(() => {
     const resumeBGM = () => BGMManager.resume();
@@ -122,6 +136,7 @@ export default function Home() {
         "button",
       );
       if (!button || button.disabled) return;
+      if (button.dataset.se === "none") return;
       const requested = button.dataset.se as SEName | undefined;
       SEManager.play(
         requested ??
@@ -138,12 +153,27 @@ export default function Home() {
   useEffect(() => {
     if (!match || match.revision <= soundedRevisionRef.current) return;
     soundedRevisionRef.current = match.revision;
+    if (match.lastEvent.type === "MATCH_STARTED") {
+      SEManager.play("startBattle");
+    }
     if (match.lastEvent.type === "ATTACKED") SEManager.play("damage");
+    if (match.lastEvent.type === "RECOVERED") SEManager.play("recovery");
+    if (match.lastEvent.type === "TURN_END_PROCESSING") {
+      SEManager.play("endTurn");
+    }
+    if (match.lastEvent.type === "TURN_ENDED") SEManager.play("startTurn");
     if (match.finished && match.winnerId === guest?.id)
       SEManager.play("victory");
   }, [guest?.id, match]);
+  useEffect(() => {
+    if (displayedEvent?.type === "TURN_END_DAMAGE") SEManager.play("damage");
+    if (displayedEvent?.type === "TURN_END_RECOVERY") {
+      SEManager.play("recovery");
+    }
+  }, [displayedEvent]);
 
-  const myTurn = match?.turnPlayerId === guest?.id;
+  const myTurn =
+    match?.phase !== "turn_end" && match?.turnPlayerId === guest?.id;
   const active = useMemo(
     () =>
       myTurn && match?.turn === actorTurn
@@ -267,6 +297,7 @@ export default function Home() {
       setSelected([]);
       setEditingSlot(null);
       setMatch(null);
+      resetEvents();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -464,6 +495,7 @@ export default function Home() {
       setGuest(updated);
       setSelected(updated.selection);
       setMatch(null);
+      resetEvents();
       setActor("");
       setMode("move");
       setAttackIndex(0);
@@ -587,6 +619,7 @@ export default function Home() {
         myTurn={!!myTurn}
         busy={busy}
         error={error}
+        displayedEvent={displayedEvent}
         actor={actor}
         mode={mode}
         attackIndex={attackIndex}

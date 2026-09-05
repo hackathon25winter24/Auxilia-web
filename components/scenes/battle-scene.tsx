@@ -14,6 +14,7 @@ import type {
   Attack,
   Definition,
   Fighter,
+  GameEvent,
   Guest,
   Match,
   Player,
@@ -85,6 +86,7 @@ type BattleSceneProps = {
   myTurn: boolean;
   busy: boolean;
   error: string;
+  displayedEvent?: GameEvent;
   actor: string;
   mode: "move" | "attack";
   attackIndex: number;
@@ -120,6 +122,7 @@ export function BattleScene({
   myTurn,
   busy,
   error,
+  displayedEvent,
   actor,
   mode,
   attackIndex,
@@ -186,9 +189,16 @@ export function BattleScene({
         </div>
         <div className="turn-state">
           <span>
-            TURN {match.turn} · {remaining}s
+            TURN {match.turn} ·
+            {match.phase === "turn_end" ? " 処理中" : ` ${remaining}s`}
           </span>
-          <h2>{myTurn ? "YOUR TURN" : "ENEMY TURN"}</h2>
+          <h2>
+            {match.phase === "turn_end"
+              ? "TURN END PROCESSING"
+              : myTurn
+                ? "YOUR TURN"
+                : "ENEMY TURN"}
+          </h2>
         </div>
         <div
           className={`player-cost right ${match.players[1].id === guest.id ? "self" : ""}`}
@@ -213,6 +223,7 @@ export function BattleScene({
           </button>
           <button
             className="end-turn"
+            data-se="none"
             disabled={!myTurn || busy}
             onClick={endTurn}
           >
@@ -302,6 +313,7 @@ export function BattleScene({
                           : `グリッド ${p.x},${p.y}`
                     }
                     style={{ backgroundImage: `url(${tile})` }}
+                    data-se={validTarget ? "none" : undefined}
                     className={`${fighter ? "occupied" : ""} ${mine ? "mine" : "enemy"} ${playerOne ? "player-one" : ""} ${selectedCell ? "active" : ""} ${inAttackRange ? "attack-range" : ""} ${validTarget ? "attack-target" : ""} ${fighter && (!mine || !myTurn) && !validTarget ? "inert-fighter" : ""}`}
                     onClick={() =>
                       validTarget
@@ -421,7 +433,7 @@ export function BattleScene({
             })}
           </div>
           <div className="battle-log">
-            <b>{match.lastEvent.text}</b>
+            <b>{displayedEvent?.text ?? match.lastEvent.text}</b>
             <span>
               {mode === "attack" && active
                 ? "方向を選び、色の付いたマスを選択"

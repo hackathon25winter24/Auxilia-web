@@ -63,6 +63,8 @@ export type TileEffect = {
 
 export type Player = { id: string; name: string; cost: number };
 
+export type GameEvent = { sequence: number; type: string; text: string };
+
 export type Match = {
   matchId: string;
   revision: number;
@@ -75,10 +77,12 @@ export type Match = {
   blockedCells: Position[];
   turnPlayerId: string;
   turn: number;
+  phase: "waiting" | "action" | "turn_end";
+  phaseDeadline?: string;
   turnDeadline: string;
   serverTime: string;
   winnerId?: string;
   finished: boolean;
-  lastEvent: { type: string; text: string };
-  events: { type: string; text: string }[];
+  lastEvent: GameEvent;
+  events: GameEvent[];
 };

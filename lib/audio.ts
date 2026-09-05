@@ -8,6 +8,9 @@ export type SEName =
   | "battleClick"
   | "battleCancel"
   | "damage"
+  | "recovery"
+  | "endTurn"
+  | "startTurn"
   | "victory";
 
 const BGM_PATHS: Record<BGMName, string> = {
@@ -22,6 +25,9 @@ const SE_PATHS: Record<SEName, string> = {
   battleClick: "/sound/SE/battle/Click.mp3",
   battleCancel: "/sound/SE/battle/Button_Cancel.mp3",
   damage: "/sound/SE/battle/DamageSound.mp3",
+  recovery: "/sound/SE/battle/Recovery.mp3",
+  endTurn: "/sound/SE/battle/EndTurn.mp3",
+  startTurn: "/sound/SE/battle/StartTurn.mp3",
   victory: "/sound/SE/battle/Victory.mp3",
 };
 

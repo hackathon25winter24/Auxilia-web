@@ -126,7 +126,6 @@ export function EntranceScene({
           ) : (
             <button
               className="primary match-ready"
-              data-se="startBattle"
               onClick={acceptMatch}
               disabled={busy}
             >
@@ -140,7 +139,6 @@ export function EntranceScene({
         ) : (
           <button
             className="primary"
-            data-se="startBattle"
             disabled={selected.filter(Boolean).length !== 3 || busy}
             onClick={queue}
           >
