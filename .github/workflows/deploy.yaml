@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-  # mainブランチにプッシュされたときに実行（必要に応じて master などに変更してください）
+    # mainブランチにプッシュされたときに実行（必要に応じて master などに変更してください）
     branches: ["main"]
 
   # GitHubのActionsタブから手動でも実行できるようにする
@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   build:
-  # 標準的なUbuntu環境でビルド
+    # 標準的なUbuntu環境でビルド
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
