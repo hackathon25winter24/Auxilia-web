@@ -1,6 +1,7 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
+import Image from "next/image";
 
 import { Frame } from "@/components/frame";
 import type { Definition, Guest, Match } from "@/lib/types";
@@ -85,7 +86,13 @@ export function EntranceScene({
               {d ? (
                 <>
                   <span>SLOT 0{index + 1}</span>
-                  <img src={`${BASE}/characters/${d.portrait}`} alt={d.name} />
+                  <Image
+                    src={`${BASE}/characters/${d.portrait}`}
+                    alt={d.name}
+                    width={2048}
+                    height={2048}
+                    unoptimized
+                  />
                   <div>
                     <h2>{d.name}</h2>
                   </div>
@@ -139,7 +146,7 @@ export function EntranceScene({
         ) : (
           <button
             className="primary"
-            data-se="startBattle"
+            data-se="none"
             disabled={selected.filter(Boolean).length !== 3 || busy}
             onClick={queue}
           >
@@ -171,7 +178,13 @@ export function EntranceScene({
                   disabled={selected.includes(d.id)}
                   onClick={() => chooseCharacter(d.id)}
                 >
-                  <img src={`${BASE}/characters/${d.portrait}`} alt={d.name} />
+                  <Image
+                    src={`${BASE}/characters/${d.portrait}`}
+                    alt={d.name}
+                    width={2048}
+                    height={2048}
+                    unoptimized
+                  />
                   <h3>{d.name}</h3>
                   <p>
                     HP {d.maxHP} / 移動コスト {d.moveCost}

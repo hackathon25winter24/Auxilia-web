@@ -287,6 +287,7 @@ export default function Home() {
   async function queue() {
     setBusy(true);
     setError("");
+    SEManager.play("startBattle");
     try {
       await saveSelection();
       setGuest(
@@ -388,6 +389,10 @@ export default function Home() {
           token,
         );
         syncMatch(updated);
+        if (actionMode === "attack") {
+          setMode("move");
+          setAttackIndex(0);
+        }
       } catch (e) {
         setError((e as Error).message);
         await loadMatch(match.matchId);
