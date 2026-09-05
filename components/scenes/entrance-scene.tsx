@@ -87,9 +87,6 @@ export function EntranceScene({
                   <img src={`${BASE}/characters/${d.portrait}`} alt={d.name} />
                   <div>
                     <h2>{d.name}</h2>
-                    <p>
-                      HP {d.maxHP} · MOVE COST {d.moveCost}
-                    </p>
                   </div>
                 </>
               ) : (
