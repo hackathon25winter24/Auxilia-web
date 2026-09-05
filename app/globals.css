@@ -1025,6 +1025,16 @@ button:disabled {
 .character-attacks {
   margin-bottom: 16px;
 }
+.select-inspected-fighter {
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 11px 14px;
+  border: 2px solid var(--ink);
+  background: var(--lime);
+  color: var(--ink);
+  font-weight: 900;
+  cursor: pointer;
+}
 .character-attacks > h3 {
   margin: 0 0 8px;
   font-size: 18px;
@@ -1051,6 +1061,35 @@ button:disabled {
   margin: 5px 0 0;
   line-height: 1.45;
   font-size: 12px;
+}
+.attack-pattern-label {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.attack-pattern {
+  display: grid;
+  gap: 2px;
+  width: max-content;
+  margin-top: 4px;
+}
+.attack-pattern > span {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: #aaa;
+  font: 15px/1 monospace;
+}
+.attack-pattern > .target {
+  color: var(--orange);
+}
+.attack-pattern > .origin {
+  color: var(--ink);
+}
+.attack-pattern > .origin.target {
+  background: color-mix(in srgb, var(--orange) 35%, transparent);
 }
 .passive-detail {
   padding: 16px;

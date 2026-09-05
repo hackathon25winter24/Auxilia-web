@@ -29,6 +29,46 @@ const ATTACK_TARGET_LABELS: Record<string, string> = {
   cell: "マス",
 };
 
+function AttackPattern({ attack }: { attack: Attack }) {
+  const cells = new Set(attack.pattern.map(({ x, y }) => `${x},${y}`));
+  const xs = [0, ...attack.pattern.map(({ x }) => x)];
+  const ys = [0, ...attack.pattern.map(({ y }) => y)];
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const positions: Position[] = [];
+
+  for (let y = maxY; y >= minY; y -= 1) {
+    for (let x = minX; x <= maxX; x += 1) positions.push({ x, y });
+  }
+
+  return (
+    <div>
+      <span className="attack-pattern-label">有効攻撃範囲</span>
+      <div
+        className="attack-pattern"
+        style={{ gridTemplateColumns: `repeat(${maxX - minX + 1}, 22px)` }}
+        aria-label="⭕がキャラクター、塗りつぶされたマスが有効攻撃範囲"
+      >
+        {positions.map(({ x, y }) => {
+          const origin = x === 0 && y === 0;
+          const target = cells.has(`${x},${y}`);
+          return (
+            <span
+              key={`${x},${y}`}
+              className={`${origin ? "origin" : ""} ${target ? "target" : ""}`}
+              title={origin ? "キャラクター" : target ? "攻撃可能" : "範囲外"}
+            >
+              {origin ? "⭕" : target ? "■" : "□"}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 type BattleSceneProps = {
   match: Match;
   guest: Guest;
@@ -109,14 +149,11 @@ export function BattleScene({
         .filter((c) => c.ownerId === player.id)
         .map((f) => {
           const d = definitions.find((item) => item.id === f.definitionId);
-          const controllable = player.id === guest.id && f.hp > 0 && myTurn;
           return (
             <button
               key={f.id}
               className={`${f.hp <= 0 ? "knocked-out" : ""} ${active?.id === f.id ? "selected" : ""}`}
-              onClick={() =>
-                controllable ? selectActor(f.id) : setInspectedFighter(f.id)
-              }
+              onClick={() => setInspectedFighter(f.id)}
             >
               <img src={portraitFor(f.definitionId)} alt={f.name} />
               <div>
@@ -127,9 +164,7 @@ export function BattleScene({
                 {f.effects.length > 0 && (
                   <span className="effects">{f.effects.join(" · ")}</span>
                 )}
-                <span className="card-hint">
-                  {controllable ? "操作する" : "パッシブ・状態を確認"}
-                </span>
+                <span className="card-hint">技・パッシブ・状態を確認</span>
                 <i
                   style={{ width: `${Math.max(0, (f.hp / f.maxHP) * 100)}%` }}
                 />
@@ -270,8 +305,8 @@ export function BattleScene({
                     onClick={() =>
                       validTarget
                         ? void act(p, "attack")
-                        : fighter && mine && myTurn
-                          ? selectActor(fighter.id)
+                        : fighter
+                          ? setInspectedFighter(fighter.id)
                           : undefined
                     }
                   >
@@ -330,13 +365,13 @@ export function BattleScene({
                           className={mode === "move" ? "on" : ""}
                           onClick={() => setMode("move")}
                         >
-                          移動（E）
+                          {mode === "move" ? "移動" : "移動（E）"}
                         </button>
                         <button
                           className={mode === "attack" ? "on" : ""}
                           onClick={() => setMode("attack")}
                         >
-                          攻撃（E）
+                          {mode === "attack" ? "攻撃" : "攻撃（E）"}
                         </button>
                       </div>
                       {mode === "move" ? (
@@ -371,7 +406,7 @@ export function BattleScene({
                               >
                                 <b>{a.name}</b>
                                 <span>
-                                  COST {a.cost} · POW {a.power} · RNG {a.range}
+                                  COST {a.cost} · POWER {a.power}
                                 </span>
                               </button>
                             ))}
@@ -438,6 +473,19 @@ export function BattleScene({
               </div>
             ) : (
               <>
+                {inspected?.ownerId === guest.id &&
+                  inspected.hp > 0 &&
+                  myTurn && (
+                    <button
+                      className="select-inspected-fighter"
+                      onClick={() => {
+                        selectActor(inspected.id);
+                        setInspectedFighter("");
+                      }}
+                    >
+                      このキャラクターを操作
+                    </button>
+                  )}
                 <section className="character-attacks">
                   <h3>技</h3>
                   <div className="character-attack-list">
@@ -450,11 +498,12 @@ export function BattleScene({
                         <p>
                           対象：
                           {ATTACK_TARGET_LABELS[attack.target] ?? attack.target}
-                          ／ 射程：{attack.range} ／
+                          ／
                           {attack.power < 0
                             ? ` 回復：${Math.abs(attack.power)}`
                             : ` 威力：${attack.power}`}
                         </p>
+                        <AttackPattern attack={attack} />
                         {attack.effect && (
                           <p>
                             追加効果：
