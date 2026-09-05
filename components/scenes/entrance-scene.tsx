@@ -139,6 +139,7 @@ export function EntranceScene({
         ) : (
           <button
             className="primary"
+            data-se="startBattle"
             disabled={selected.filter(Boolean).length !== 3 || busy}
             onClick={queue}
           >

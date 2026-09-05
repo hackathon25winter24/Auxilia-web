@@ -698,6 +698,35 @@ button:disabled {
 .board .enemy img {
   filter: none;
 }
+.fighter-damaged {
+  animation: fighter-damage-hit 480ms ease-out;
+}
+@keyframes fighter-damage-hit {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  15%,
+  55% {
+    translate: -7px 0;
+    filter: sepia(0.7) saturate(3.5) hue-rotate(315deg) brightness(1.05);
+  }
+  35%,
+  75% {
+    translate: 7px 0;
+    filter: sepia(0.7) saturate(3.5) hue-rotate(315deg) brightness(1.05);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fighter-damaged {
+    animation-name: fighter-damage-flash;
+  }
+  @keyframes fighter-damage-flash {
+    50% {
+      filter: sepia(0.7) saturate(3.5) hue-rotate(315deg) brightness(1.05);
+    }
+  }
+}
 .board .active {
   box-shadow: inset 0 0 0 5px var(--lime);
 }
@@ -1059,6 +1088,40 @@ button:disabled {
 }
 .battle-reference-backdrop {
   z-index: 50;
+}
+.surrender-confirm-backdrop {
+  z-index: 70;
+}
+.surrender-confirm {
+  width: min(460px, 92vw);
+  padding: 26px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 10px 10px 0 var(--orange);
+  text-align: center;
+}
+.surrender-confirm h2 {
+  margin: 0 0 10px;
+  font-size: clamp(30px, 6vw, 46px);
+}
+.surrender-confirm > p:not(.eyebrow) {
+  margin: 0;
+}
+.surrender-confirm > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 24px;
+}
+.surrender-confirm button {
+  padding: 12px;
+  border: 2px solid var(--ink);
+  font-weight: 900;
+  cursor: pointer;
+}
+.surrender-confirm-action {
+  background: var(--orange);
+  color: #fff;
 }
 .battle-reference {
   width: min(640px, 94vw);

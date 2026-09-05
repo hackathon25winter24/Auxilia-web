@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type {
   Dispatch,
   PointerEvent,
@@ -87,6 +88,7 @@ type BattleSceneProps = {
   busy: boolean;
   error: string;
   displayedEvent?: GameEvent;
+  damageAnimations: Record<string, number>;
   actor: string;
   mode: "move" | "attack";
   attackIndex: number;
@@ -123,6 +125,7 @@ export function BattleScene({
   busy,
   error,
   displayedEvent,
+  damageAnimations,
   actor,
   mode,
   attackIndex,
@@ -141,6 +144,7 @@ export function BattleScene({
   dragController,
   endControllerDrag,
 }: BattleSceneProps) {
+  const [confirmingSurrender, setConfirmingSurrender] = useState(false);
   const inspected = match.characters.find((f) => f.id === inspectedFighter);
   const inspectedDefinition = definitions.find(
     (d) => d.id === inspected?.definitionId,
@@ -158,7 +162,12 @@ export function BattleScene({
               className={`${f.hp <= 0 ? "knocked-out" : ""} ${active?.id === f.id ? "selected" : ""}`}
               onClick={() => setInspectedFighter(f.id)}
             >
-              <img src={portraitFor(f.definitionId)} alt={f.name} />
+              <img
+                key={`${f.id}-${damageAnimations[f.id] ?? 0}`}
+                className={damageAnimations[f.id] ? "fighter-damaged" : ""}
+                src={portraitFor(f.definitionId)}
+                alt={f.name}
+              />
               <div>
                 <b>{f.name}</b>
                 <span>
@@ -215,9 +224,8 @@ export function BattleScene({
           </button>
           <button
             className="surrender"
-            data-se="battleCancel"
             disabled={busy}
-            onClick={surrender}
+            onClick={() => setConfirmingSurrender(true)}
           >
             投降
           </button>
@@ -330,6 +338,12 @@ export function BattleScene({
                     {fighter && (
                       <>
                         <img
+                          key={`${fighter.id}-${damageAnimations[fighter.id] ?? 0}`}
+                          className={
+                            damageAnimations[fighter.id]
+                              ? "fighter-damaged"
+                              : ""
+                          }
                           src={miniFor(fighter.definitionId)}
                           alt={fighter.name}
                         />
@@ -446,6 +460,41 @@ export function BattleScene({
         </div>
         {fighterCards(match.players[1], "right")}
       </section>
+      {confirmingSurrender && (
+        <div className="modal-backdrop surrender-confirm-backdrop">
+          <section
+            className="surrender-confirm"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="surrender-confirm-title"
+            aria-describedby="surrender-confirm-description"
+          >
+            <p className="eyebrow">SURRENDER</p>
+            <h2 id="surrender-confirm-title">投降しますか？</h2>
+            <p id="surrender-confirm-description">この試合は敗北になります。</p>
+            <div>
+              <button
+                className="secondary"
+                data-se="battleCancel"
+                onClick={() => setConfirmingSurrender(false)}
+              >
+                キャンセル
+              </button>
+              <button
+                className="surrender-confirm-action"
+                data-se="battleCancel"
+                disabled={busy}
+                onClick={() => {
+                  setConfirmingSurrender(false);
+                  void surrender();
+                }}
+              >
+                投降する
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       {(inspected || showEffectGuide) && (
         <div className="modal-backdrop battle-reference-backdrop">
           <section

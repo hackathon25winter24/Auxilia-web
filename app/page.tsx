@@ -47,9 +47,13 @@ export default function Home() {
   } | null>(null);
   const [inspectedFighter, setInspectedFighter] = useState("");
   const [showEffectGuide, setShowEffectGuide] = useState(false);
+  const [damageAnimations, setDamageAnimations] = useState<
+    Record<string, number>
+  >({});
   const controllerRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ offsetX: number; offsetY: number } | null>(null);
   const soundedRevisionRef = useRef(0);
+  const previousMatchRef = useRef<Match | null>(null);
   const {
     displayedEvent,
     ingest: ingestEvents,
@@ -69,6 +73,25 @@ export default function Home() {
   const syncMatch = useCallback(
     (state: Match) => {
       const receivedAt = Date.now();
+      const previous = previousMatchRef.current;
+      if (previous?.matchId === state.matchId) {
+        const previousHP = new Map(
+          previous.characters.map((fighter) => [fighter.id, fighter.hp]),
+        );
+        const damaged = state.characters.filter(
+          (fighter) => fighter.hp < (previousHP.get(fighter.id) ?? fighter.hp),
+        );
+        if (damaged.length > 0) {
+          setDamageAnimations((current) => {
+            const next = { ...current };
+            for (const fighter of damaged) next[fighter.id] = state.revision;
+            return next;
+          });
+        }
+      } else {
+        setDamageAnimations({});
+      }
+      previousMatchRef.current = state;
       ingestEvents(state);
       setMatch(state);
       setMatchReceivedAt(receivedAt);
@@ -297,6 +320,8 @@ export default function Home() {
       setSelected([]);
       setEditingSlot(null);
       setMatch(null);
+      previousMatchRef.current = null;
+      setDamageAnimations({});
       resetEvents();
     } catch (e) {
       setError((e as Error).message);
@@ -452,8 +477,7 @@ export default function Home() {
     }
   }
   async function surrender() {
-    if (!match || !window.confirm("投降しますか？ この試合は敗北になります。"))
-      return;
+    if (!match) return;
     setBusy(true);
     setError("");
     try {
@@ -495,6 +519,8 @@ export default function Home() {
       setGuest(updated);
       setSelected(updated.selection);
       setMatch(null);
+      previousMatchRef.current = null;
+      setDamageAnimations({});
       resetEvents();
       setActor("");
       setMode("move");
@@ -620,6 +646,7 @@ export default function Home() {
         busy={busy}
         error={error}
         displayedEvent={displayedEvent}
+        damageAnimations={damageAnimations}
         actor={actor}
         mode={mode}
         attackIndex={attackIndex}

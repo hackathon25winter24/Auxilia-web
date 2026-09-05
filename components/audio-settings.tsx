@@ -33,7 +33,7 @@ export function AudioSettings() {
         aria-label="音量設定を開く"
         onClick={openSettings}
       >
-        ⚙ 設定
+        音量設定
       </button>
       {open && (
         <div className="modal-backdrop settings-backdrop">
