@@ -37,7 +37,7 @@ export function TitleScene({
             />
             <button disabled={busy}>エントランスへ</button>
           </div>
-          <small>1〜20文字・アカウント登録は必要ありません</small>
+          <small>1〜20文字で入力してください</small>
         </form>
         {error && <p className="error">{error}</p>}
       </section>

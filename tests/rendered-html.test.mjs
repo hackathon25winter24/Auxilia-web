@@ -36,10 +36,26 @@ test("server-renders the Auxilia title screen", async () => {
 });
 
 test("keeps page responsibilities in dedicated modules", async () => {
-  const [page, titleScene, resultScene, api, types] = await Promise.all([
+  const [
+    page,
+    titleScene,
+    entranceScene,
+    battleScene,
+    resultScene,
+    api,
+    types,
+  ] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(
       new URL("../components/scenes/title-scene.tsx", import.meta.url),
+      "utf8",
+    ),
+    readFile(
+      new URL("../components/scenes/entrance-scene.tsx", import.meta.url),
+      "utf8",
+    ),
+    readFile(
+      new URL("../components/scenes/battle-scene.tsx", import.meta.url),
       "utf8",
     ),
     readFile(
@@ -51,13 +67,13 @@ test("keeps page responsibilities in dedicated modules", async () => {
   ]);
 
   assert.match(page, /import \{ TitleScene \}/);
+  assert.match(page, /import \{ EntranceScene \}/);
+  assert.match(page, /import \{ BattleScene \}/);
   assert.match(page, /import \{ ResultScene \}/);
   assert.match(page, /import \{ request \}/);
-  assert.match(
-    page,
-    /import type \{ Definition, Guest, Match, Player, Position \}/,
-  );
   assert.match(titleScene, /export function TitleScene/);
+  assert.match(entranceScene, /export function EntranceScene/);
+  assert.match(battleScene, /export function BattleScene/);
   assert.match(resultScene, /export function ResultScene/);
   assert.match(api, /export async function request/);
   assert.match(types, /export type Match/);

@@ -11,7 +11,7 @@ export function Frame({ step, headerAction, children }: FrameProps) {
     <main className={`app ${step === "ENTRANCE" ? "entrance-frame" : ""}`}>
       <header className="brand">
         <b>AUXILIA</b>
-        <span>Battle Prototype</span>
+        <span>Web Ver.1.0</span>
         <i>{step}</i>
         {headerAction}
       </header>

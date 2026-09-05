@@ -9,12 +9,13 @@ import {
   useState,
 } from "react";
 
-import { Frame } from "@/components/frame";
+import { BattleScene } from "@/components/scenes/battle-scene";
+import { EntranceScene } from "@/components/scenes/entrance-scene";
 import { ResultScene } from "@/components/scenes/result-scene";
 import { TitleScene } from "@/components/scenes/title-scene";
 import { request } from "@/lib/api";
-import { EFFECT_DESCRIPTIONS, KEY_DIRECTIONS } from "@/lib/game";
-import type { Definition, Guest, Match, Player, Position } from "@/lib/types";
+import { KEY_DIRECTIONS } from "@/lib/game";
+import type { Definition, Guest, Match, Position } from "@/lib/types";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -534,568 +535,63 @@ export default function Home() {
   }
 
   if (match?.started && guest) {
-    const inspected = match.characters.find((f) => f.id === inspectedFighter);
-    const inspectedDefinition = definitions.find(
-      (d) => d.id === inspected?.definitionId,
-    );
-    const fighterCards = (player: Player, side: "left" | "right") => (
-      <aside className={`fighter-cards ${side}`}>
-        <strong>{player.id === match.players[0].id ? "1P" : "2P"}</strong>
-        {match.characters
-          .filter((c) => c.ownerId === player.id)
-          .map((f) => {
-            const d = definitions.find((item) => item.id === f.definitionId);
-            const controllable = player.id === guest.id && f.hp > 0 && myTurn;
-            return (
-              <button
-                key={f.id}
-                className={`${f.hp <= 0 ? "knocked-out" : ""} ${active?.id === f.id ? "selected" : ""}`}
-                onClick={() =>
-                  controllable ? selectActor(f.id) : setInspectedFighter(f.id)
-                }
-              >
-                <img src={portraitFor(f.definitionId)} alt={f.name} />
-                <div>
-                  <b>{f.name}</b>
-                  <span>
-                    HP {f.hp}/{f.maxHP}
-                  </span>
-                  {f.effects.length > 0 && (
-                    <span className="effects">{f.effects.join(" · ")}</span>
-                  )}
-                  <span className="card-hint">
-                    {controllable ? "操作する" : "パッシブ・状態を確認"}
-                  </span>
-                  <i
-                    style={{ width: `${Math.max(0, (f.hp / f.maxHP) * 100)}%` }}
-                  />
-                </div>
-                <small>MOVE {d?.moveCost ?? "-"}</small>
-              </button>
-            );
-          })}
-      </aside>
-    );
     return (
-      <Frame step={`MATCH ${match.matchId.slice(-6).toUpperCase()}`}>
-        <section className="battle-head">
-          <div
-            className={`player-cost left ${match.players[0].id === guest.id ? "self" : ""}`}
-          >
-            <b>1P · {match.players[0].name}</b>
-            <span>COST {match.players[0].cost}/50</span>
-          </div>
-          <div className="turn-state">
-            <span>
-              TURN {match.turn} · {remaining}s
-            </span>
-            <h2>{myTurn ? "YOUR TURN" : "ENEMY TURN"}</h2>
-          </div>
-          <div
-            className={`player-cost right ${match.players[1].id === guest.id ? "self" : ""}`}
-          >
-            <b>2P · {match.players[1].name}</b>
-            <span>COST {match.players[1].cost}/50</span>
-          </div>
-          <div className="battle-actions">
-            <button
-              className="effect-guide-button"
-              onClick={() => setShowEffectGuide(true)}
-            >
-              状態異常
-            </button>
-            <button
-              className="surrender"
-              disabled={!myTurn || busy}
-              onClick={surrender}
-            >
-              投降
-            </button>
-            <button
-              className="end-turn"
-              disabled={!myTurn || busy}
-              onClick={endTurn}
-            >
-              ターン終了
-            </button>
-          </div>
-        </section>
-        <section className="battle-stage">
-          {fighterCards(match.players[0], "left")}
-          <div className="battle-center">
-            <div className="base-durability">
-              {match.bases.map((base, index) => (
-                <div key={base.ownerId} className={index === 1 ? "right" : ""}>
-                  <span>{index === 0 ? "1P" : "2P"} BASE</span>
-                  <b>
-                    {base.hp}/{base.maxHP}
-                  </b>
-                  <i>
-                    <em
-                      style={{
-                        width: `${Math.max(0, (base.hp / base.maxHP) * 100)}%`,
-                      }}
-                    />
-                  </i>
-                </div>
-              ))}
-            </div>
-            <div className="board">
-              {Array.from({ length: 40 }, (_, i) => {
-                const p = { x: i % 8, y: 4 - Math.floor(i / 8) };
-                const fighter = match.characters.find(
-                  (c) =>
-                    c.hp > 0 && c.position.x === p.x && c.position.y === p.y,
-                );
-                const base = match.bases.find(
-                  (item) => item.position.x === p.x && item.position.y === p.y,
-                );
-                const blocked = match.blockedCells?.some(
-                  (item) => item.x === p.x && item.y === p.y,
-                );
-                const mine = fighter?.ownerId === guest.id;
-                const playerOne = fighter?.ownerId === match.players[0].id;
-                const inAttackRange =
-                  !!myTurn &&
-                  !blocked &&
-                  mode === "attack" &&
-                  !!active &&
-                  attackable.has(`${p.x},${p.y}`);
-                const validFighterTarget =
-                  inAttackRange &&
-                  !!fighter &&
-                  !!selectedAttack &&
-                  (selectedAttack.target === "any" ||
-                    (selectedAttack.target === "ally" && mine) ||
-                    (selectedAttack.target === "enemy" && !mine));
-                const validBaseTarget =
-                  inAttackRange &&
-                  !fighter &&
-                  !!base &&
-                  !!selectedAttack &&
-                  (selectedAttack.target === "any" ||
-                    (selectedAttack.target === "enemy" &&
-                      base.ownerId !== guest.id));
-                const validCellTarget =
-                  inAttackRange &&
-                  selectedAttack?.target === "cell" &&
-                  !fighter &&
-                  !base;
-                const validTarget =
-                  validFighterTarget || validBaseTarget || validCellTarget;
-                const tileEffect = match.tileEffects?.find(
-                  (item) => item.position.x === p.x && item.position.y === p.y,
-                );
-                const selectedCell = myTurn && actor === fighter?.id;
-                const tile = `${BASE}/Grids/${base ? "grid_base_on.png" : "gird_default.png"}`;
-                return (
-                  <div
-                    key={i}
-                    className={`board-cell ${selectedCell ? "has-controller" : ""} ${base ? "base-cell" : ""} ${tileEffect ? `tile-${tileEffect.type}` : ""} ${blocked ? "blocked-cell" : ""}`}
-                  >
-                    <button
-                      disabled={blocked}
-                      aria-label={
-                        blocked
-                          ? `侵入不可能マス ${p.x},${p.y}`
-                          : base
-                            ? `${base.ownerId === match.players[0].id ? "1P" : "2P"}拠点 耐久力${base.hp}`
-                            : `グリッド ${p.x},${p.y}`
-                      }
-                      style={{ backgroundImage: `url(${tile})` }}
-                      className={`${fighter ? "occupied" : ""} ${mine ? "mine" : "enemy"} ${playerOne ? "player-one" : ""} ${selectedCell ? "active" : ""} ${inAttackRange ? "attack-range" : ""} ${validTarget ? "attack-target" : ""}`}
-                      onClick={() =>
-                        validTarget
-                          ? void act(p, "attack")
-                          : fighter && mine && myTurn
-                            ? selectActor(fighter.id)
-                            : undefined
-                      }
-                    >
-                      <small>
-                        {p.x},{p.y}
-                        {tileEffect ? ` · ${tileEffect.type}` : ""}
-                      </small>
-                      {fighter && (
-                        <>
-                          <img
-                            src={miniFor(fighter.definitionId)}
-                            alt={fighter.name}
-                          />
-                          <em>
-                            {fighter.hp}/{fighter.maxHP}
-                          </em>
-                        </>
-                      )}
-                    </button>
-                    {selectedCell && active && (
-                      <div
-                        ref={controllerRef}
-                        style={
-                          controllerPosition
-                            ? {
-                                position: "fixed",
-                                left: controllerPosition.x,
-                                top: controllerPosition.y,
-                                right: "auto",
-                                transform: "none",
-                              }
-                            : undefined
-                        }
-                        className={`unit-controller ${controllerPosition ? "controller-dragged" : p.x >= 5 ? "controller-left" : "controller-right"}`}
-                      >
-                        <header
-                          onPointerDown={beginControllerDrag}
-                          onPointerMove={dragController}
-                          onPointerUp={endControllerDrag}
-                          onPointerCancel={endControllerDrag}
-                        >
-                          <b>
-                            {active.name}
-                            <small>↕ このバーをドラッグして移動</small>
-                          </b>
-                          <button
-                            aria-label="閉じる"
-                            onPointerDown={(event) => event.stopPropagation()}
-                            onClick={() => selectActor("")}
-                          >
-                            ×
-                          </button>
-                        </header>
-                        <div className="mode">
-                          <button
-                            className={mode === "move" ? "on" : ""}
-                            onClick={() => setMode("move")}
-                          >
-                            移動
-                          </button>
-                          <button
-                            className={mode === "attack" ? "on" : ""}
-                            onClick={() => setMode("attack")}
-                          >
-                            攻撃
-                          </button>
-                        </div>
-                        {mode === "move" ? (
-                          <>
-                            <p className="move-message">
-                              <span className="desktop-instruction">
-                                十字キー / WASDで移動
-                              </span>
-                              <span className="mobile-instruction">
-                                方向をタップして移動
-                              </span>
-                            </p>
-                            {mobileDirectionPad}
-                          </>
-                        ) : (
-                          <div className="attack-panel">
-                            <p className="attack-direction">
-                              <span className="desktop-instruction">
-                                十字キー / WASDで攻撃方向を変更
-                              </span>
-                              <span className="mobile-instruction">
-                                方向をタップして攻撃方向を変更
-                              </span>
-                            </p>
-                            {mobileDirectionPad}
-                            <div className="attack-list">
-                              {activeDefinition?.attacks.map((a, index) => (
-                                <button
-                                  key={a.name}
-                                  className={attackIndex === index ? "on" : ""}
-                                  onClick={() => setAttackIndex(index)}
-                                >
-                                  <b>{a.name}</b>
-                                  <span>
-                                    COST {a.cost} · POW {a.power} · RNG{" "}
-                                    {a.range}
-                                  </span>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="battle-log">
-              <b>{match.lastEvent.text}</b>
-              <span>
-                {mode === "attack" && active
-                  ? "方向を選び、色の付いたマスを選択"
-                  : mode === "move" && active
-                    ? "方向を選んで移動"
-                    : "キャラクターを選択して操作"}
-              </span>
-              {error && <em>{error}</em>}
-            </div>
-          </div>
-          {fighterCards(match.players[1], "right")}
-        </section>
-        {(inspected || showEffectGuide) && (
-          <div className="modal-backdrop battle-reference-backdrop">
-            <section
-              className="battle-reference"
-              role="dialog"
-              aria-modal="true"
-              aria-label={
-                showEffectGuide ? "状態異常一覧" : `${inspected?.name}の詳細`
-              }
-            >
-              <header>
-                <div>
-                  <p className="eyebrow">BATTLE REFERENCE</p>
-                  <h2>
-                    {showEffectGuide ? "状態異常・バフ一覧" : inspected?.name}
-                  </h2>
-                </div>
-                <button
-                  aria-label="閉じる"
-                  onClick={() => {
-                    setInspectedFighter("");
-                    setShowEffectGuide(false);
-                  }}
-                >
-                  ×
-                </button>
-              </header>
-              {showEffectGuide ? (
-                <div className="effect-reference-list">
-                  {Object.entries(EFFECT_DESCRIPTIONS).map(
-                    ([effect, description]) => (
-                      <article key={effect}>
-                        <b>{effect}</b>
-                        <p>{description}</p>
-                      </article>
-                    ),
-                  )}
-                </div>
-              ) : (
-                <>
-                  <article className="passive-detail">
-                    <span>PASSIVE</span>
-                    <h3>
-                      {inspectedDefinition?.passiveName || "パッシブなし"}
-                    </h3>
-                    <p>
-                      {inspectedDefinition?.passiveDescription ||
-                        "説明はありません。"}
-                    </p>
-                  </article>
-                  <div className="current-effects">
-                    <h3>現在の状態</h3>
-                    {inspected && inspected.effects.length > 0 ? (
-                      inspected.effects.map((effect) => (
-                        <article key={effect}>
-                          <b>{effect}</b>
-                          <p>
-                            {EFFECT_DESCRIPTIONS[effect] ??
-                              "詳細情報はありません。"}
-                          </p>
-                        </article>
-                      ))
-                    ) : (
-                      <p>状態異常・バフはありません。</p>
-                    )}
-                  </div>
-                </>
-              )}
-            </section>
-          </div>
-        )}
-      </Frame>
+      <BattleScene
+        match={match}
+        guest={guest}
+        definitions={definitions}
+        inspectedFighter={inspectedFighter}
+        setInspectedFighter={setInspectedFighter}
+        showEffectGuide={showEffectGuide}
+        setShowEffectGuide={setShowEffectGuide}
+        active={active}
+        activeDefinition={activeDefinition}
+        selectedAttack={selectedAttack}
+        attackable={attackable}
+        remaining={remaining}
+        myTurn={!!myTurn}
+        busy={busy}
+        error={error}
+        actor={actor}
+        mode={mode}
+        attackIndex={attackIndex}
+        controllerPosition={controllerPosition}
+        controllerRef={controllerRef}
+        mobileDirectionPad={mobileDirectionPad}
+        portraitFor={portraitFor}
+        miniFor={miniFor}
+        selectActor={selectActor}
+        act={act}
+        surrender={surrender}
+        endTurn={endTurn}
+        setMode={setMode}
+        setAttackIndex={setAttackIndex}
+        beginControllerDrag={beginControllerDrag}
+        dragController={dragController}
+        endControllerDrag={endControllerDrag}
+      />
     );
   }
 
   if (guest) {
-    const waitingForOpponent =
-      !!match && !match.started && match.readyPlayerIds.includes(guest.id);
     return (
-      <Frame
-        step="ENTRANCE"
-        headerAction={
-          <button
-            className="header-title-back"
-            disabled={busy || !!guest.matchId}
-            onClick={returnToTitle}
-          >
-            タイトルへ戻る
-          </button>
-        }
-      >
-        <section className="entrance-head">
-          <div>
-            <p className="eyebrow">WELCOME, {guest.name.toUpperCase()}</p>
-            <h1 className="small-h1">3人の部隊を編成</h1>
-          </div>
-          <div className={`status ${guest.queued ? "searching" : ""}`}>
-            {guest.matchId
-              ? "マッチングしました"
-              : guest.queued
-                ? "対戦相手を検索中"
-                : "キャラクターを選択"}
-          </div>
-        </section>
-        <section className="party-slots">
-          {Array.from({ length: 3 }, (_, index) => {
-            const id = selected[index];
-            const d = definitions.find((item) => item.id === id);
-            return (
-              <button
-                key={index}
-                className={`party-slot ${d ? "filled" : ""}`}
-                disabled={guest.queued || !!guest.matchId}
-                onClick={() => setEditingSlot(index)}
-              >
-                {d ? (
-                  <>
-                    <span>SLOT 0{index + 1}</span>
-                    <img
-                      src={`${BASE}/characters/${d.portrait}`}
-                      alt={d.name}
-                    />
-                    <div>
-                      <h2>{d.name}</h2>
-                      <p>
-                        HP {d.maxHP} · MOVE COST {d.moveCost}
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <b>＋</b>
-                    <span>SLOT 0{index + 1}</span>
-                    <p>クリックして選択</p>
-                  </>
-                )}
-              </button>
-            );
-          })}
-        </section>
-        <section className="match-bar">
-          <div>
-            <b>{selected.filter(Boolean).length}/3 SELECTED</b>
-            <span>
-              {waitingForOpponent
-                ? "相手も対戦開始を押すとゲームが始まります"
-                : guest.matchId
-                  ? "準備ができたら対戦を開始してください"
-                  : guest.queued
-                    ? "マッチ成立までお待ちください"
-                    : "各枠をクリックしてキャラクターを選択してください"}
-            </span>
-          </div>
-          {guest.matchId ? (
-            waitingForOpponent ? (
-              <button
-                className="secondary cancel-ready"
-                onClick={cancelMatchStart}
-                disabled={busy}
-              >
-                {busy ? "キャンセル中…" : "対戦開始をキャンセル"}
-              </button>
-            ) : (
-              <button
-                className="primary match-ready"
-                onClick={acceptMatch}
-                disabled={busy}
-              >
-                対戦を開始
-              </button>
-            )
-          ) : guest.queued ? (
-            <button className="secondary" onClick={cancel}>
-              キャンセル
-            </button>
-          ) : (
-            <button
-              className="primary"
-              disabled={selected.filter(Boolean).length !== 3 || busy}
-              onClick={queue}
-            >
-              マッチング開始
-            </button>
-          )}
-        </section>
-        {editingSlot !== null && (
-          <div className="modal-backdrop">
-            <div
-              className="character-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="character-modal-title"
-            >
-              <header>
-                <div>
-                  <p className="eyebrow">SELECT FOR SLOT 0{editingSlot + 1}</p>
-                  <h2 id="character-modal-title">キャラクター選択</h2>
-                </div>
-                <button
-                  aria-label="閉じる"
-                  onClick={() => setEditingSlot(null)}
-                >
-                  ×
-                </button>
-              </header>
-              <div className="roster">
-                {definitions.map((d) => (
-                  <button
-                    key={d.id}
-                    disabled={selected.includes(d.id)}
-                    onClick={() => chooseCharacter(d.id)}
-                  >
-                    <img
-                      src={`${BASE}/characters/${d.portrait}`}
-                      alt={d.name}
-                    />
-                    <h3>{d.name}</h3>
-                    <p>
-                      HP {d.maxHP} / 移動コスト {d.moveCost}
-                    </p>
-                    <div>
-                      {d.attacks.map((a) => (
-                        <span key={a.name}>{a.name}</span>
-                      ))}
-                    </div>
-                    <div className="usage-stats">
-                      <small>
-                        使用率{" "}
-                        <b>
-                          {(d.totalPickCount > 0
-                            ? (d.usageCount / d.totalPickCount) * 100
-                            : 0
-                          ).toFixed(1)}
-                          %
-                        </b>
-                      </small>
-                      <small>
-                        使用数 <b>{d.usageCount}</b>
-                      </small>
-                    </div>
-                    <article className="passive-summary">
-                      <b>PASSIVE · {d.passiveName}</b>
-                      <p>{d.passiveDescription}</p>
-                    </article>
-                  </button>
-                ))}
-              </div>
-              {selected[editingSlot] && (
-                <button
-                  className="remove-character"
-                  onClick={() => clearSlot(editingSlot)}
-                >
-                  この枠を空にする
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-        {error && <p className="floating-error">{error}</p>}
-      </Frame>
+      <EntranceScene
+        guest={guest}
+        match={match}
+        definitions={definitions}
+        selected={selected}
+        editingSlot={editingSlot}
+        busy={busy}
+        error={error}
+        setEditingSlot={setEditingSlot}
+        chooseCharacter={chooseCharacter}
+        clearSlot={clearSlot}
+        queue={queue}
+        cancel={cancel}
+        returnToTitle={returnToTitle}
+        acceptMatch={acceptMatch}
+        cancelMatchStart={cancelMatchStart}
+      />
     );
   }
 
