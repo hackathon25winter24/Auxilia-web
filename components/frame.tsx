@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { AudioSettings } from "@/components/audio-settings";
+
 type FrameProps = {
   step: string;
   headerAction?: ReactNode;
@@ -12,8 +14,11 @@ export function Frame({ step, headerAction, children }: FrameProps) {
       <header className="brand">
         <b>AUXILIA</b>
         <span>Ver.1.0</span>
-        <i>{step}</i>
-        {headerAction}
+        <div className="brand-tools">
+          <i>{step}</i>
+          {headerAction}
+          <AudioSettings />
+        </div>
       </header>
       {children}
     </main>

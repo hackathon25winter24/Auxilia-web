@@ -1,4 +1,18 @@
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+const BGM_VOLUME_KEY = "auxilia-bgm-volume";
+const SE_VOLUME_KEY = "auxilia-se-volume";
+
+function clampVolume(value: number) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function savedVolume(key: string, fallback: number) {
+  if (typeof localStorage === "undefined") return fallback;
+  const stored = localStorage.getItem(key);
+  if (stored === null) return fallback;
+  const saved = Number(stored);
+  return Number.isFinite(saved) ? clampVolume(saved) : fallback;
+}
 
 export type BGMName = "menu" | "battle";
 export type SEName =
@@ -34,14 +48,37 @@ const SE_PATHS: Record<SEName, string> = {
 class BGMController {
   private audio?: HTMLAudioElement;
   private current?: BGMName;
+  private volume = 0.35;
+  private volumeLoaded = false;
+
+  getVolume() {
+    this.loadVolume();
+    return this.volume;
+  }
+
+  setVolume(volume: number) {
+    this.volume = clampVolume(volume);
+    this.volumeLoaded = true;
+    if (this.audio) this.audio.volume = this.volume;
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(BGM_VOLUME_KEY, String(this.volume));
+    }
+  }
+
+  private loadVolume() {
+    if (this.volumeLoaded) return;
+    this.volume = savedVolume(BGM_VOLUME_KEY, this.volume);
+    this.volumeLoaded = true;
+  }
 
   play(name: BGMName) {
     if (typeof Audio === "undefined") return;
+    this.loadVolume();
     if (this.current !== name) {
       this.audio?.pause();
       this.audio = new Audio(`${BASE}${BGM_PATHS[name]}`);
       this.audio.loop = true;
-      this.audio.volume = 0.35;
+      this.audio.volume = this.volume;
       this.current = name;
     }
     void this.audio?.play().catch(() => {
@@ -61,10 +98,33 @@ class BGMController {
 }
 
 class SEController {
+  private volume = 0.6;
+  private volumeLoaded = false;
+
+  getVolume() {
+    this.loadVolume();
+    return this.volume;
+  }
+
+  setVolume(volume: number) {
+    this.volume = clampVolume(volume);
+    this.volumeLoaded = true;
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(SE_VOLUME_KEY, String(this.volume));
+    }
+  }
+
+  private loadVolume() {
+    if (this.volumeLoaded) return;
+    this.volume = savedVolume(SE_VOLUME_KEY, this.volume);
+    this.volumeLoaded = true;
+  }
+
   play(name: SEName) {
     if (typeof Audio === "undefined") return;
+    this.loadVolume();
     const audio = new Audio(`${BASE}${SE_PATHS[name]}`);
-    audio.volume = 0.6;
+    audio.volume = this.volume;
     void audio.play().catch(() => {});
   }
 }

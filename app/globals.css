@@ -46,13 +46,71 @@ input {
   font-weight: 700;
 }
 .brand i {
-  margin-left: auto;
   font: 700 10px monospace;
   letter-spacing: 0.15em;
   font-style: normal;
   background: var(--ink);
   color: #fff;
   padding: 8px 12px;
+}
+.brand-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.settings-button {
+  border: 2px solid var(--ink);
+  padding: 7px 12px;
+  background: #fff;
+  color: var(--ink);
+  font: 900 10px monospace;
+  cursor: pointer;
+}
+.settings-button:hover {
+  background: var(--lime);
+}
+.settings-backdrop {
+  z-index: 100;
+}
+.settings-dialog {
+  width: min(520px, 92vw);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 10px 10px 0 var(--lime);
+  padding: 22px;
+}
+.settings-dialog > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 20px;
+}
+.settings-dialog h2 {
+  margin: 0 0 14px;
+  font-size: 34px;
+}
+.settings-dialog header button {
+  border: 0;
+  background: transparent;
+  font-size: 36px;
+  cursor: pointer;
+}
+.settings-dialog > label {
+  display: grid;
+  gap: 9px;
+  margin-top: 18px;
+}
+.settings-dialog label span {
+  display: flex;
+  justify-content: space-between;
+  font: 900 13px monospace;
+}
+.settings-dialog input[type="range"] {
+  width: 100%;
+  accent-color: var(--orange);
+  cursor: pointer;
 }
 .welcome {
   padding: 9vh 4vw 5vh;
@@ -1159,6 +1217,18 @@ button:disabled {
   }
   .brand span {
     display: none;
+  }
+  .brand {
+    padding: 14px 4vw;
+  }
+  .brand-tools {
+    gap: 5px;
+  }
+  .brand i,
+  .settings-button,
+  .header-title-back {
+    padding: 7px 8px;
+    font-size: 9px;
   }
   .welcome {
     padding-top: 8vh;
