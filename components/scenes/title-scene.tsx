@@ -35,7 +35,9 @@ export function TitleScene({
               placeholder="名前を入力"
               autoComplete="nickname"
             />
-            <button disabled={busy}>エントランスへ</button>
+            <button data-se="titleEntrance" disabled={busy}>
+              エントランスへ
+            </button>
           </div>
           <small>1〜20文字で入力してください</small>
         </form>

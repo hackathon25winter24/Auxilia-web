@@ -205,7 +205,8 @@ export function BattleScene({
           </button>
           <button
             className="surrender"
-            disabled={!myTurn || busy}
+            data-se="battleCancel"
+            disabled={busy}
             onClick={surrender}
           >
             投降
@@ -301,12 +302,12 @@ export function BattleScene({
                           : `グリッド ${p.x},${p.y}`
                     }
                     style={{ backgroundImage: `url(${tile})` }}
-                    className={`${fighter ? "occupied" : ""} ${mine ? "mine" : "enemy"} ${playerOne ? "player-one" : ""} ${selectedCell ? "active" : ""} ${inAttackRange ? "attack-range" : ""} ${validTarget ? "attack-target" : ""}`}
+                    className={`${fighter ? "occupied" : ""} ${mine ? "mine" : "enemy"} ${playerOne ? "player-one" : ""} ${selectedCell ? "active" : ""} ${inAttackRange ? "attack-range" : ""} ${validTarget ? "attack-target" : ""} ${fighter && (!mine || !myTurn) && !validTarget ? "inert-fighter" : ""}`}
                     onClick={() =>
                       validTarget
                         ? void act(p, "attack")
-                        : fighter
-                          ? setInspectedFighter(fighter.id)
+                        : fighter && mine && myTurn
+                          ? selectActor(fighter.id)
                           : undefined
                     }
                   >
@@ -473,19 +474,6 @@ export function BattleScene({
               </div>
             ) : (
               <>
-                {inspected?.ownerId === guest.id &&
-                  inspected.hp > 0 &&
-                  myTurn && (
-                    <button
-                      className="select-inspected-fighter"
-                      onClick={() => {
-                        selectActor(inspected.id);
-                        setInspectedFighter("");
-                      }}
-                    >
-                      このキャラクターを操作
-                    </button>
-                  )}
                 <section className="character-attacks">
                   <h3>技</h3>
                   <div className="character-attack-list">

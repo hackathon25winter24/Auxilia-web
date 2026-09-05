@@ -14,6 +14,7 @@ import { EntranceScene } from "@/components/scenes/entrance-scene";
 import { ResultScene } from "@/components/scenes/result-scene";
 import { TitleScene } from "@/components/scenes/title-scene";
 import { request } from "@/lib/api";
+import { BGMManager, SEManager, type SEName } from "@/lib/audio";
 import { KEY_DIRECTIONS } from "@/lib/game";
 import type { Definition, Guest, Match, Position } from "@/lib/types";
 
@@ -47,6 +48,7 @@ export default function Home() {
   const [showEffectGuide, setShowEffectGuide] = useState(false);
   const controllerRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ offsetX: number; offsetY: number } | null>(null);
+  const soundedRevisionRef = useRef(0);
   const loadDefinitions = useCallback(async () => {
     const items = await request<Definition[]>("/api/characters");
     setDefinitions(items);
@@ -110,6 +112,36 @@ export default function Home() {
     window.addEventListener("resize", resetControllerPosition);
     return () => window.removeEventListener("resize", resetControllerPosition);
   }, []);
+  useEffect(() => {
+    BGMManager.play(match?.started && !match.finished ? "battle" : "menu");
+  }, [match?.finished, match?.started]);
+  useEffect(() => {
+    const resumeBGM = () => BGMManager.resume();
+    const playButtonSound = (event: MouseEvent) => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
+        "button",
+      );
+      if (!button || button.disabled) return;
+      const requested = button.dataset.se as SEName | undefined;
+      SEManager.play(
+        requested ??
+          (match?.started && !match.finished ? "battleClick" : "menuClick"),
+      );
+    };
+    document.addEventListener("pointerdown", resumeBGM, { once: true });
+    document.addEventListener("click", playButtonSound);
+    return () => {
+      document.removeEventListener("pointerdown", resumeBGM);
+      document.removeEventListener("click", playButtonSound);
+    };
+  }, [match?.finished, match?.started]);
+  useEffect(() => {
+    if (!match || match.revision <= soundedRevisionRef.current) return;
+    soundedRevisionRef.current = match.revision;
+    if (match.lastEvent.type === "ATTACKED") SEManager.play("damage");
+    if (match.finished && match.winnerId === guest?.id)
+      SEManager.play("victory");
+  }, [guest?.id, match]);
 
   const myTurn = match?.turnPlayerId === guest?.id;
   const active = useMemo(
@@ -389,11 +421,7 @@ export default function Home() {
     }
   }
   async function surrender() {
-    if (
-      !match ||
-      !myTurn ||
-      !window.confirm("投降しますか？ この試合は敗北になります。")
-    )
+    if (!match || !window.confirm("投降しますか？ この試合は敗北になります。"))
       return;
     setBusy(true);
     setError("");

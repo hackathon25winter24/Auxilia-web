@@ -50,6 +50,7 @@ export function EntranceScene({
       headerAction={
         <button
           className="header-title-back"
+          data-se="titleEntrance"
           disabled={busy || !!guest.matchId}
           onClick={returnToTitle}
         >
@@ -125,6 +126,7 @@ export function EntranceScene({
           ) : (
             <button
               className="primary match-ready"
+              data-se="startBattle"
               onClick={acceptMatch}
               disabled={busy}
             >
@@ -138,6 +140,7 @@ export function EntranceScene({
         ) : (
           <button
             className="primary"
+            data-se="startBattle"
             disabled={selected.filter(Boolean).length !== 3 || busy}
             onClick={queue}
           >
