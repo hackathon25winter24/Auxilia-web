@@ -1,7 +1,6 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
-import Image from "next/image";
 
 import { Frame } from "@/components/frame";
 import type { Definition, Guest, Match } from "@/lib/types";
@@ -86,12 +85,11 @@ export function EntranceScene({
               {d ? (
                 <>
                   <span>SLOT 0{index + 1}</span>
-                  <Image
+                  <img
                     src={`${BASE}/characters/${d.portrait}`}
                     alt={d.name}
                     width={2048}
                     height={2048}
-                    unoptimized
                   />
                   <div>
                     <h2>{d.name}</h2>
@@ -178,12 +176,11 @@ export function EntranceScene({
                   disabled={selected.includes(d.id)}
                   onClick={() => chooseCharacter(d.id)}
                 >
-                  <Image
+                  <img
                     src={`${BASE}/characters/${d.portrait}`}
                     alt={d.name}
                     width={2048}
                     height={2048}
-                    unoptimized
                   />
                   <h3>{d.name}</h3>
                   <p>

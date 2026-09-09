@@ -231,7 +231,7 @@ export default function Home() {
             1000,
         ),
       )
-    : 90;
+    : 120;
   const miniFor = (id: string) => {
     const d = definitions.find((item) => item.id === id);
     return d ? `${BASE}/characters-mini/${d.image}` : "";

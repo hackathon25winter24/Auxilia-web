@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import type {
   Dispatch,
   PointerEvent,
@@ -163,14 +162,13 @@ export function BattleScene({
               className={`${f.hp <= 0 ? "knocked-out" : ""} ${active?.id === f.id ? "selected" : ""}`}
               onClick={() => setInspectedFighter(f.id)}
             >
-              <Image
-                key={`${f.id}-${damageAnimations[f.id] ?? 0}`}
+              <img
+                key={`${f.id}-${damageAnimations[f.id] === match.revision ?? 0}`}
                 className={damageAnimations[f.id] ? "fighter-damaged" : ""}
                 src={portraitFor(f.definitionId)}
                 alt={f.name}
                 width={2048}
                 height={2048}
-                unoptimized
               />
               <div>
                 <b>{f.name}</b>
@@ -341,10 +339,10 @@ export function BattleScene({
                     </small>
                     {fighter && (
                       <>
-                        <Image
+                        <img
                           key={`${fighter.id}-${damageAnimations[fighter.id] ?? 0}`}
                           className={
-                            damageAnimations[fighter.id]
+                            damageAnimations[fighter.id] === match.revision
                               ? "fighter-damaged"
                               : ""
                           }
@@ -352,7 +350,6 @@ export function BattleScene({
                           alt={fighter.name}
                           width={2048}
                           height={2048}
-                          unoptimized
                         />
                         <em>
                           {fighter.hp}/{fighter.maxHP}

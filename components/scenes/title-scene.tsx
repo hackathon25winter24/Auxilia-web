@@ -1,5 +1,4 @@
 import type { FormEventHandler } from "react";
-import Image from "next/image";
 
 import { Frame } from "@/components/frame";
 
@@ -45,13 +44,12 @@ export function TitleScene({
         {error && <p className="error">{error}</p>}
       </section>
       <aside className="title-visual">
-        <Image
+        <img
           src={`${basePath}/title.png`}
           alt="Auxiliaのキャラクターたち"
           width={2560}
           height={1440}
-          priority
-          unoptimized
+          fetchPriority="high"
         />
       </aside>
     </Frame>
