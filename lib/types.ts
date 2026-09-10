@@ -20,6 +20,7 @@ export type Attack = {
   effectChance?: number;
   tile?: string;
   clearDebuffs?: boolean;
+  clearBuffs?: boolean;
 };
 
 export type Definition = {
@@ -59,6 +60,7 @@ export type TileEffect = {
   position: Position;
   type: string;
   ownerId: string;
+  hp?: number;
 };
 
 export type Player = { id: string; name: string; cost: number };

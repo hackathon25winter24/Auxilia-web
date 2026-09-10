@@ -163,8 +163,12 @@ export function BattleScene({
               onClick={() => setInspectedFighter(f.id)}
             >
               <img
-                key={`${f.id}-${damageAnimations[f.id] === match.revision ?? 0}`}
-                className={damageAnimations[f.id] ? "fighter-damaged" : ""}
+                key={`${f.id}-${damageAnimations[f.id] ?? 0}`}
+                className={
+                  damageAnimations[f.id] === match.revision
+                    ? "fighter-damaged"
+                    : ""
+                }
                 src={portraitFor(f.definitionId)}
                 alt={f.name}
                 width={2048}
@@ -274,6 +278,10 @@ export function BattleScene({
                 (item) => item.x === p.x && item.y === p.y,
               );
               const mine = fighter?.ownerId === guest.id;
+              const tileEffect = match.tileEffects?.find(
+                (item) => item.position.x === p.x && item.position.y === p.y,
+              );
+              const immutable = tileEffect?.type === "不変";
               const playerOne = fighter?.ownerId === match.players[0].id;
               const inAttackRange =
                 !!myTurn &&
@@ -293,19 +301,28 @@ export function BattleScene({
                 !fighter &&
                 !!base &&
                 !!selectedAttack &&
+                selectedAttack.power > 0 &&
                 (selectedAttack.target === "any" ||
                   (selectedAttack.target === "enemy" &&
                     base.ownerId !== guest.id));
               const validCellTarget =
                 inAttackRange &&
                 selectedAttack?.target === "cell" &&
-                !fighter &&
+                (!fighter || selectedAttack.tile === "不変") &&
+                !immutable &&
                 !base;
+              const validTileTarget =
+                inAttackRange &&
+                immutable &&
+                !!selectedAttack &&
+                selectedAttack.power > 0 &&
+                (selectedAttack.target === "enemy" ||
+                  selectedAttack.target === "any");
               const validTarget =
-                validFighterTarget || validBaseTarget || validCellTarget;
-              const tileEffect = match.tileEffects?.find(
-                (item) => item.position.x === p.x && item.position.y === p.y,
-              );
+                validFighterTarget ||
+                validBaseTarget ||
+                validCellTarget ||
+                validTileTarget;
               const selectedCell = myTurn && actor === fighter?.id;
               const tile = `${BASE}/Grids/${base ? "grid_base_on.png" : "gird_default.png"}`;
               return (
@@ -337,6 +354,14 @@ export function BattleScene({
                       {p.x},{p.y}
                       {tileEffect ? ` · ${tileEffect.type}` : ""}
                     </small>
+                    {immutable && (
+                      <span
+                        className="immutable-hp"
+                        title="侵入不可・毎ターン終了時HP−50・攻撃で破壊可能"
+                      >
+                        不変 HP {tileEffect.hp}/120
+                      </span>
+                    )}
                     {fighter && (
                       <>
                         <img
@@ -407,6 +432,11 @@ export function BattleScene({
                       </div>
                       {mode === "move" ? (
                         <>
+                          {immutable && active.definitionId !== "tsukiha" && (
+                            <p className="move-message">
+                              不変マスで移動不可。攻撃・回復は可能です。
+                            </p>
+                          )}
                           <p className="move-message">
                             <span className="desktop-instruction">
                               十字キー / WASDで移動
@@ -568,8 +598,16 @@ export function BattleScene({
                           </p>
                         )}
                         {attack.tile && <p>設置マス：{attack.tile}</p>}
+                        {attack.tile === "不変" && (
+                          <p>
+                            前方1マスにHP120の不変マスを設置。キャラの足元にも設置でき、移動を封じます。毎ターン終了時にHPが50減り、攻撃でも破壊できます。
+                          </p>
+                        )}
                         {attack.clearDebuffs && (
                           <p>対象のデバフを解除します。</p>
+                        )}
+                        {attack.clearBuffs && (
+                          <p>敵の威力上昇・俊足・俊敏化を解除します。</p>
                         )}
                       </article>
                     )) ?? <p>技の情報はありません。</p>}

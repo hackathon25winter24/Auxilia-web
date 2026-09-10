@@ -1052,6 +1052,23 @@ button:disabled {
 .tile-毒ガス > button:after {
   background: radial-gradient(circle, #a9f25e, #48792f 70%, transparent 72%);
 }
+.tile-不変 > button {
+  outline: 3px solid #70dcff;
+  outline-offset: -4px;
+}
+.board .immutable-hp {
+  position: absolute;
+  z-index: 2;
+  left: 3px;
+  right: 3px;
+  top: 22px;
+  padding: 2px;
+  background: #122d3c;
+  color: #b4efff;
+  font-size: clamp(10px, 1vw, 14px);
+  font-weight: 700;
+  pointer-events: none;
+}
 .fighter-cards .effects {
   color: #ffd36a;
   white-space: nowrap;

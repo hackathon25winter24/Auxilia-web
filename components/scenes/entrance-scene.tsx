@@ -207,8 +207,10 @@ export function EntranceScene({
                     </small>
                   </div>
                   <article className="passive-summary">
-                    <b>PASSIVE · {d.passiveName}</b>
-                    <p>{d.passiveDescription}</p>
+                    <b>PASSIVE · {d.passiveName || "なし"}</b>
+                    <p>
+                      {d.passiveDescription || "パッシブスキルはありません。"}
+                    </p>
                   </article>
                 </button>
               ))}
