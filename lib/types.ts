@@ -21,6 +21,7 @@ export type Attack = {
   tile?: string;
   clearDebuffs?: boolean;
   clearBuffs?: boolean;
+  allyEffect?: string;
 };
 
 export type Definition = {

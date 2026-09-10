@@ -293,7 +293,9 @@ export function BattleScene({
                 inAttackRange &&
                 !!fighter &&
                 !!selectedAttack &&
-                (selectedAttack.target === "any" ||
+                (!selectedAttack.allyEffect || fighter.id !== active?.id) &&
+                ((selectedAttack.allyEffect && mine) ||
+                  selectedAttack.target === "any" ||
                   (selectedAttack.target === "ally" && mine) ||
                   (selectedAttack.target === "enemy" && !mine));
               const validBaseTarget =
@@ -309,11 +311,13 @@ export function BattleScene({
                 inAttackRange &&
                 selectedAttack?.target === "cell" &&
                 (!fighter || selectedAttack.tile === "不変") &&
-                !immutable &&
+                !tileEffect &&
                 !base;
               const validTileTarget =
                 inAttackRange &&
-                immutable &&
+                (immutable ||
+                  (tileEffect?.type === "地雷" &&
+                    active?.definitionId === "berenice")) &&
                 !!selectedAttack &&
                 selectedAttack.power > 0 &&
                 (selectedAttack.target === "enemy" ||
@@ -598,6 +602,12 @@ export function BattleScene({
                           </p>
                         )}
                         {attack.tile && <p>設置マス：{attack.tile}</p>}
+                        {attack.allyEffect && (
+                          <p>
+                            範囲内の自身以外の味方に{attack.allyEffect}
+                            を付与します。
+                          </p>
+                        )}
                         {attack.tile === "不変" && (
                           <p>
                             前方1マスにHP170の不変マスを設置。キャラの足元にも設置でき、移動を封じます。毎ターン終了時にHPが50減り、攻撃でも破壊できます。
