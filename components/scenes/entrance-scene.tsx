@@ -42,6 +42,11 @@ export function EntranceScene({
   acceptMatch,
   cancelMatchStart,
 }: EntranceSceneProps) {
+  const sortedDefinitions = [...definitions].sort((a, b) => {
+    const aRate = a.totalPickCount > 0 ? a.usageCount / a.totalPickCount : 0;
+    const bRate = b.totalPickCount > 0 ? b.usageCount / b.totalPickCount : 0;
+    return bRate - aRate;
+  });
   const waitingForOpponent =
     !!match && !match.started && match.readyPlayerIds.includes(guest.id);
   return (
@@ -170,7 +175,7 @@ export function EntranceScene({
               </button>
             </header>
             <div className="roster">
-              {definitions.map((d) => (
+              {sortedDefinitions.map((d) => (
                 <button
                   key={d.id}
                   disabled={selected.includes(d.id)}

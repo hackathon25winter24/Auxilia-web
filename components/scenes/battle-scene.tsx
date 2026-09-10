@@ -359,7 +359,7 @@ export function BattleScene({
                         className="immutable-hp"
                         title="侵入不可・毎ターン終了時HP−50・攻撃で破壊可能"
                       >
-                        不変 HP {tileEffect.hp}/120
+                        不変 HP {tileEffect.hp}/170
                       </span>
                     )}
                     {fighter && (
@@ -600,7 +600,7 @@ export function BattleScene({
                         {attack.tile && <p>設置マス：{attack.tile}</p>}
                         {attack.tile === "不変" && (
                           <p>
-                            前方1マスにHP120の不変マスを設置。キャラの足元にも設置でき、移動を封じます。毎ターン終了時にHPが50減り、攻撃でも破壊できます。
+                            前方1マスにHP170の不変マスを設置。キャラの足元にも設置でき、移動を封じます。毎ターン終了時にHPが50減り、攻撃でも破壊できます。
                           </p>
                         )}
                         {attack.clearDebuffs && (
@@ -616,6 +616,13 @@ export function BattleScene({
                 <article className="passive-detail">
                   <span>PASSIVE</span>
                   <h3>{inspectedDefinition?.passiveName || "パッシブなし"}</h3>
+                  {inspectedDefinition?.id === "wellbulus" && (
+                    <p>
+                      {inspected?.reviveUsed
+                        ? "復活：使用済み"
+                        : "復活：未使用"}
+                    </p>
+                  )}
                   <p>
                     {inspectedDefinition?.passiveDescription ||
                       "説明はありません。"}

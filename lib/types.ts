@@ -47,6 +47,7 @@ export type Fighter = {
   maxHP: number;
   position: Position;
   effects: string[];
+  reviveUsed?: boolean;
 };
 
 export type BaseState = {
