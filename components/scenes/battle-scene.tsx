@@ -99,7 +99,11 @@ type BattleSceneProps = {
   portraitFor: (id: string) => string;
   miniFor: (id: string) => string;
   selectActor: (id: string) => void;
-  act: (position: Position, mode?: "move" | "attack") => Promise<void>;
+  act: (
+    position: Position,
+    mode?: "move" | "attack",
+    attackIndex?: number,
+  ) => Promise<void>;
   surrender: () => Promise<void>;
   endTurn: () => Promise<void>;
   setMode: Dispatch<SetStateAction<"move" | "attack">>;
@@ -487,9 +491,32 @@ export function BattleScene({
                               <button
                                 key={a.name}
                                 className={attackIndex === index ? "on" : ""}
-                                onClick={() => setAttackIndex(index)}
+                                disabled={
+                                  busy ||
+                                  !!(
+                                    a.oncePerTurn &&
+                                    active.usedSkills?.[a.name] === match.turn
+                                  )
+                                }
+                                onClick={() => {
+                                  if (
+                                    a.oncePerTurn &&
+                                    a.pattern.length === 1 &&
+                                    a.pattern[0].x === 0 &&
+                                    a.pattern[0].y === 0
+                                  ) {
+                                    void act(active.position, "attack", index);
+                                  } else setAttackIndex(index);
+                                }}
                               >
                                 <b>{a.name}</b>
+                                {a.oncePerTurn && (
+                                  <small>
+                                    {active.usedSkills?.[a.name] === match.turn
+                                      ? "使用済み"
+                                      : "1ターン1回・クリックで使用"}
+                                  </small>
+                                )}
                                 <span>
                                   COST {a.cost} · POWER {a.power}
                                 </span>
@@ -661,6 +688,11 @@ export function BattleScene({
                 </article>
                 <div className="current-effects">
                   <h3>現在の状態</h3>
+                  {inspected?.definitionId === "suima" && (
+                    <article>
+                      <b>{inspected.wriggling ? "くねくね状態" : "活動状態"}</b>
+                    </article>
+                  )}
                   {inspected && inspected.effects.length > 0 ? (
                     inspected.effects.map((effect) => (
                       <article key={effect}>

@@ -372,7 +372,11 @@ export default function Home() {
     }
   }
   const act = useCallback(
-    async (position: Position, actionMode = mode) => {
+    async (
+      position: Position,
+      actionMode = mode,
+      requestedAttackIndex = attackIndex,
+    ) => {
       if (!match || !actor || !myTurn || busy) return;
       setBusy(true);
       setError("");
@@ -385,7 +389,7 @@ export default function Home() {
               commandId: crypto.randomUUID(),
               expectedRevision: match.revision,
               characterId: actor,
-              attackIndex,
+              attackIndex: requestedAttackIndex,
               target: position,
               direction: attackDirection,
             }),

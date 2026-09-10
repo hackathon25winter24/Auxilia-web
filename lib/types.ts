@@ -10,6 +10,7 @@ export type Guest = {
 export type Position = { x: number; y: number };
 
 export type Attack = {
+  oncePerTurn?: boolean;
   description?: string;
   name: string;
   cost: number;
@@ -42,6 +43,7 @@ export type Definition = {
 };
 
 export type Fighter = {
+  usedSkills?: Record<string, number>;
   wriggling?: boolean;
   id: string;
   definitionId: string;
