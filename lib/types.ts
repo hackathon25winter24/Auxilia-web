@@ -70,6 +70,7 @@ export type Player = { id: string; name: string; cost: number };
 export type GameEvent = { sequence: number; type: string; text: string };
 
 export type Match = {
+  testOwnerId?: string;
   matchId: string;
   revision: number;
   started: boolean;

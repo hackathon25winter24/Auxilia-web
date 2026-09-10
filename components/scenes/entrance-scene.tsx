@@ -1,6 +1,12 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 
 import { Frame } from "@/components/frame";
 import type { Definition, Guest, Match } from "@/lib/types";
@@ -18,7 +24,7 @@ type EntranceSceneProps = {
   setEditingSlot: Dispatch<SetStateAction<number | null>>;
   chooseCharacter: (id: string) => void;
   clearSlot: (index: number) => void;
-  queue: () => Promise<void>;
+  queue: (password?: string) => Promise<void>;
   cancel: () => Promise<void>;
   returnToTitle: () => Promise<void>;
   acceptMatch: () => Promise<void>;
@@ -42,6 +48,38 @@ export function EntranceScene({
   acceptMatch,
   cancelMatchStart,
 }: EntranceSceneProps) {
+  const testHeld = useRef(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const passwordInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (passwordOpen) passwordInput.current?.focus();
+  }, [passwordOpen]);
+  useEffect(() => {
+    const down = (event: KeyboardEvent) => {
+      if (
+        event.target instanceof HTMLElement &&
+        (event.target.isContentEditable ||
+          /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName))
+      )
+        return;
+      if (event.code === "KeyT") testHeld.current = true;
+    };
+    const up = (event: KeyboardEvent) => {
+      if (event.code === "KeyT") testHeld.current = false;
+    };
+    const reset = () => {
+      testHeld.current = false;
+    };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", reset);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+      window.removeEventListener("blur", reset);
+    };
+  }, []);
   const sortedDefinitions = [...definitions].sort((a, b) => {
     const aRate = a.totalPickCount > 0 ? a.usageCount / a.totalPickCount : 0;
     const bRate = b.totalPickCount > 0 ? b.usageCount / b.totalPickCount : 0;
@@ -151,12 +189,67 @@ export function EntranceScene({
             className="primary"
             data-se="none"
             disabled={selected.filter(Boolean).length !== 3 || busy}
-            onClick={queue}
+            onClick={() => {
+              if (testHeld.current) {
+                testHeld.current = false;
+                setPasswordOpen(true);
+              } else void queue();
+            }}
           >
-            マッチング開始
+            対戦開始
           </button>
         )}
       </section>
+      {passwordOpen && (
+        <div className="modal-backdrop">
+          <form
+            className="surrender-confirm test-password-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="test-password-title"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const submitted = password;
+              setPassword("");
+              void queue(submitted);
+            }}
+          >
+            <h2 id="test-password-title">テストモード</h2>
+            <label htmlFor="test-password">パスワード</label>
+            <input
+              id="test-password"
+              type="password"
+              ref={passwordInput}
+              autoComplete="off"
+              required
+              disabled={busy}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            {error && <p role="alert">{error}</p>}
+            <div>
+              <button
+                type="button"
+                className="secondary"
+                disabled={busy}
+                onClick={() => {
+                  setPassword("");
+                  setPasswordOpen(false);
+                }}
+              >
+                キャンセル
+              </button>
+              <button
+                type="submit"
+                className="primary"
+                disabled={busy || !password}
+              >
+                開始
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
       {editingSlot !== null && (
         <div className="modal-backdrop">
           <div

@@ -196,7 +196,10 @@ export default function Home() {
   }, [displayedEvent]);
 
   const myTurn =
-    match?.phase !== "turn_end" && match?.turnPlayerId === guest?.id;
+    !match?.finished &&
+    match?.phase !== "turn_end" &&
+    (match?.turnPlayerId === guest?.id ||
+      (!!guest && match?.testOwnerId === guest.id));
   const active = useMemo(
     () =>
       myTurn && match?.turn === actorTurn
@@ -284,19 +287,22 @@ export default function Home() {
     );
     setGuest(next);
   }
-  async function queue() {
+  async function queue(password?: string) {
     setBusy(true);
     setError("");
     SEManager.play("startBattle");
     try {
       await saveSelection();
-      setGuest(
-        await request<Guest>(
-          "/api/matchmaking",
-          { method: "POST", body: "{}" },
-          token,
-        ),
+      const updated = await request<Guest>(
+        password === undefined ? "/api/matchmaking" : "/api/test-matches",
+        {
+          method: "POST",
+          body: password === undefined ? "{}" : JSON.stringify({ password }),
+        },
+        token,
       );
+      setGuest(updated);
+      if (updated.matchId) await loadMatch(updated.matchId);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -522,7 +528,7 @@ export default function Home() {
       setBusy(false);
     }
   }
-  async function returnToEntrance() {
+  const returnToEntrance = useCallback(async () => {
     if (!match) return;
     setBusy(true);
     setError("");
@@ -532,7 +538,6 @@ export default function Home() {
         { method: "POST", body: "{}" },
         token,
       );
-      await loadDefinitions();
       setGuest(updated);
       setSelected(updated.selection);
       setMatch(null);
@@ -542,12 +547,19 @@ export default function Home() {
       setActor("");
       setMode("move");
       setAttackIndex(0);
+      void loadDefinitions().catch(() => {});
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
     }
-  }
+  }, [match, token, loadDefinitions, resetEvents]);
+
+  useEffect(() => {
+    if (!match?.testOwnerId || !match.finished) return;
+    const navigation = window.setTimeout(() => void returnToEntrance(), 0);
+    return () => window.clearTimeout(navigation);
+  }, [match?.testOwnerId, match?.finished, returnToEntrance]);
   function selectActor(id: string) {
     if (id && !myTurn) return;
     setActor(id);
@@ -630,6 +642,18 @@ export default function Home() {
   );
 
   if (match?.finished) {
+    if (match.testOwnerId)
+      return (
+        <main className="frame">
+          <h1>テストモード終了</h1>
+          <p>{error || "エントランスに戻っています…"}</p>
+          {error && (
+            <button disabled={busy} onClick={returnToEntrance}>
+              エントランスに戻る
+            </button>
+          )}
+        </main>
+      );
     const winner = match.players.find((p) => p.id === match.winnerId);
     return (
       <ResultScene
@@ -648,7 +672,11 @@ export default function Home() {
     return (
       <BattleScene
         match={match}
-        guest={guest}
+        guest={
+          match.testOwnerId === guest.id
+            ? { ...guest, id: match.turnPlayerId }
+            : guest
+        }
         definitions={definitions}
         inspectedFighter={inspectedFighter}
         setInspectedFighter={setInspectedFighter}

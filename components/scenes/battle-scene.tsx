@@ -194,7 +194,9 @@ export function BattleScene({
     </aside>
   );
   return (
-    <Frame step={`MATCH ${match.matchId.slice(-6).toUpperCase()}`}>
+    <Frame
+      step={`${match.testOwnerId ? "TEST MODE" : "MATCH"} ${match.matchId.slice(-6).toUpperCase()}`}
+    >
       <section className="battle-head">
         <div
           className={`player-cost left ${match.players[0].id === guest.id ? "self" : ""}`}
@@ -210,9 +212,11 @@ export function BattleScene({
           <h2>
             {match.phase === "turn_end"
               ? "TURN END PROCESSING"
-              : myTurn
-                ? "YOUR TURN"
-                : "ENEMY TURN"}
+              : match.testOwnerId
+                ? `${match.turnPlayerId === match.players[0].id ? "1P" : "2P"} 操作中`
+                : myTurn
+                  ? "YOUR TURN"
+                  : "ENEMY TURN"}
           </h2>
         </div>
         <div
@@ -231,9 +235,12 @@ export function BattleScene({
           <button
             className="surrender"
             disabled={busy}
-            onClick={() => setConfirmingSurrender(true)}
+            onClick={() => {
+              if (match.testOwnerId) void surrender();
+              else setConfirmingSurrender(true);
+            }}
           >
-            投降
+            {match.testOwnerId ? "終了" : "投降"}
           </button>
           <button
             className="end-turn"
