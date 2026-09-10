@@ -1,4 +1,18 @@
+import type { Definition, Fighter } from "./types";
+
+export function definitionForFighter(
+  definitions: Definition[],
+  fighter?: Fighter,
+) {
+  const definition = definitions.find((d) => d.id === fighter?.definitionId);
+  return definition && fighter?.wriggling && definition.alternateAttacks
+    ? { ...definition, attacks: definition.alternateAttacks }
+    : definition;
+}
+
 export const EFFECT_DESCRIPTIONS: Record<string, string> = {
+  二日酔い:
+    "攻撃力が20%低下し、移動・攻撃コストがそれぞれ5増加する。自分のターン終了時に解除される。",
   威力上昇: "攻撃ダメージが25%上昇する。",
   俊足: "移動コストが2下がる。",
   俊敏化: "攻撃コストが2下がる。",

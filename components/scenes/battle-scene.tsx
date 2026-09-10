@@ -10,7 +10,8 @@ import type {
 } from "react";
 
 import { Frame } from "@/components/frame";
-import { EFFECT_DESCRIPTIONS } from "@/lib/game";
+import { CharacterImage } from "@/components/character-image";
+import { EFFECT_DESCRIPTIONS, definitionForFighter } from "@/lib/game";
 import type {
   Attack,
   Definition,
@@ -146,9 +147,7 @@ export function BattleScene({
 }: BattleSceneProps) {
   const [confirmingSurrender, setConfirmingSurrender] = useState(false);
   const inspected = match.characters.find((f) => f.id === inspectedFighter);
-  const inspectedDefinition = definitions.find(
-    (d) => d.id === inspected?.definitionId,
-  );
+  const inspectedDefinition = definitionForFighter(definitions, inspected);
   const fighterCards = (player: Player, side: "left" | "right") => (
     <aside className={`fighter-cards ${side}`}>
       <strong>{player.id === match.players[0].id ? "1P" : "2P"}</strong>
@@ -162,7 +161,7 @@ export function BattleScene({
               className={`${f.hp <= 0 ? "knocked-out" : ""} ${active?.id === f.id ? "selected" : ""}`}
               onClick={() => setInspectedFighter(f.id)}
             >
-              <img
+              <CharacterImage
                 key={`${f.id}-${damageAnimations[f.id] ?? 0}`}
                 className={
                   damageAnimations[f.id] === match.revision
@@ -176,6 +175,9 @@ export function BattleScene({
               />
               <div>
                 <b>{f.name}</b>
+                {f.definitionId === "suima" && (
+                  <span>{f.wriggling ? "くねくね状態" : "活動状態"}</span>
+                )}
                 <span>
                   HP {f.hp}/{f.maxHP}
                 </span>
@@ -330,6 +332,16 @@ export function BattleScene({
                 (selectedAttack.target === "enemy" ||
                   selectedAttack.target === "any");
               const validTarget =
+                (inAttackRange &&
+                  active?.definitionId === "suima" &&
+                  !active.wriggling &&
+                  ((attackIndex === 0 &&
+                    match.characters.some(
+                      (c) => c.definitionId === "shincho" && c.hp > 0,
+                    )) ||
+                    (attackIndex === 2 &&
+                      !!tileEffect &&
+                      tileEffect.ownerId !== guest.id))) ||
                 validFighterTarget ||
                 validBaseTarget ||
                 validCellTarget ||
@@ -375,7 +387,8 @@ export function BattleScene({
                     )}
                     {fighter && (
                       <>
-                        <img
+                        <CharacterImage
+                          mini
                           key={`${fighter.id}-${damageAnimations[fighter.id] ?? 0}`}
                           className={
                             damageAnimations[fighter.id] === match.revision
@@ -598,6 +611,7 @@ export function BattleScene({
                             : ` 威力：${attack.power}`}
                         </p>
                         <AttackPattern attack={attack} />
+                        {attack.description && <p>{attack.description}</p>}
                         {attack.effect && (
                           <p>
                             追加効果：

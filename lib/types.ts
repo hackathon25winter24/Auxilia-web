@@ -10,6 +10,7 @@ export type Guest = {
 export type Position = { x: number; y: number };
 
 export type Attack = {
+  description?: string;
   name: string;
   cost: number;
   power: number;
@@ -25,6 +26,7 @@ export type Attack = {
 };
 
 export type Definition = {
+  alternateAttacks?: Attack[];
   id: string;
   name: string;
   image: string;
@@ -40,6 +42,7 @@ export type Definition = {
 };
 
 export type Fighter = {
+  wriggling?: boolean;
   id: string;
   definitionId: string;
   ownerId: string;

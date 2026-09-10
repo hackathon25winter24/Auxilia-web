@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { Frame } from "@/components/frame";
+import { CharacterImage } from "@/components/character-image";
 import type { Definition, Guest, Match } from "@/lib/types";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -128,7 +129,7 @@ export function EntranceScene({
               {d ? (
                 <>
                   <span>SLOT 0{index + 1}</span>
-                  <img
+                  <CharacterImage
                     src={`${BASE}/characters/${d.portrait}`}
                     alt={d.name}
                     width={2048}
@@ -274,7 +275,7 @@ export function EntranceScene({
                   disabled={selected.includes(d.id)}
                   onClick={() => chooseCharacter(d.id)}
                 >
-                  <img
+                  <CharacterImage
                     src={`${BASE}/characters/${d.portrait}`}
                     alt={d.name}
                     width={2048}

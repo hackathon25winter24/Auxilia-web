@@ -15,7 +15,7 @@ import { ResultScene } from "@/components/scenes/result-scene";
 import { TitleScene } from "@/components/scenes/title-scene";
 import { request } from "@/lib/api";
 import { BGMManager, SEManager, type SEName } from "@/lib/audio";
-import { KEY_DIRECTIONS } from "@/lib/game";
+import { KEY_DIRECTIONS, definitionForFighter } from "@/lib/game";
 import type { Definition, Guest, Match, Position } from "@/lib/types";
 import { useEventLogQueue } from "@/hooks/use-event-log-queue";
 
@@ -207,9 +207,7 @@ export default function Home() {
         : undefined,
     [actor, actorTurn, match, myTurn],
   );
-  const activeDefinition = definitions.find(
-    (d) => d.id === active?.definitionId,
-  );
+  const activeDefinition = definitionForFighter(definitions, active);
   const selectedAttack =
     mode === "attack" ? activeDefinition?.attacks[attackIndex] : undefined;
   const attackable = new Set<string>();
