@@ -416,12 +416,24 @@ export default function Home() {
   const moveBy = useCallback(
     (dx: number, dy: number) => {
       if (!active || mode !== "move") return;
+      const immutable = match?.tileEffects?.some(
+        (tile) =>
+          tile.type === "不変" &&
+          tile.position.x === active.position.x &&
+          tile.position.y === active.position.y,
+      );
+      if (immutable && active.definitionId !== "tsukiha") {
+        setError(
+          "不変マスにより移動できません。マスが壊れるまで攻撃・回復のみ行えます。",
+        );
+        return;
+      }
       void act(
         { x: active.position.x + dx, y: active.position.y + dy },
         "move",
       );
     },
-    [act, active, mode],
+    [act, active, mode, match],
   );
   const inputDirection = useCallback(
     (dx: number, dy: number) => {

@@ -12,7 +12,7 @@ export function useEventLogQueue() {
   const seenSequenceRef = useRef(0);
   const pendingRef = useRef<GameEvent[]>([]);
   const displayedAtRef = useRef(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const pump = useCallback(function scheduleNextEvent() {
     if (timerRef.current || pendingRef.current.length === 0) return;
