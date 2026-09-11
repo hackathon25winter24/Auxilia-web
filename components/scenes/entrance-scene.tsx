@@ -50,6 +50,7 @@ export function EntranceScene({
   cancelMatchStart,
 }: EntranceSceneProps) {
   const testHeld = useRef(false);
+  const [sortOrder, setSortOrder] = useState<"usage" | "alphabetical">("usage");
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [password, setPassword] = useState("");
   const passwordInput = useRef<HTMLInputElement>(null);
@@ -82,9 +83,11 @@ export function EntranceScene({
     };
   }, []);
   const sortedDefinitions = [...definitions].sort((a, b) => {
+    const byID = a.id.localeCompare(b.id, "en");
+    if (sortOrder === "alphabetical") return byID;
     const aRate = a.totalPickCount > 0 ? a.usageCount / a.totalPickCount : 0;
     const bRate = b.totalPickCount > 0 ? b.usageCount / b.totalPickCount : 0;
-    return bRate - aRate;
+    return bRate - aRate || byID;
   });
   const waitingForOpponent =
     !!match && !match.started && match.readyPlayerIds.includes(guest.id);
@@ -262,7 +265,23 @@ export function EntranceScene({
             <header>
               <div>
                 <p className="eyebrow">SELECT FOR SLOT 0{editingSlot + 1}</p>
-                <h2 id="character-modal-title">キャラクター選択</h2>
+                <div className="character-sort-row">
+                  <h2 id="character-modal-title">キャラクター選択</h2>
+                  <select
+                    aria-label="キャラクターの表示順"
+                    value={sortOrder}
+                    onChange={(event) =>
+                      setSortOrder(
+                        event.target.value === "alphabetical"
+                          ? "alphabetical"
+                          : "usage",
+                      )
+                    }
+                  >
+                    <option value="usage">使用率順に表示</option>
+                    <option value="alphabetical">アルファベット順に表示</option>
+                  </select>
+                </div>
               </div>
               <button aria-label="閉じる" onClick={() => setEditingSlot(null)}>
                 ×

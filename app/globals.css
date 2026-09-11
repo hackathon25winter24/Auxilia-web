@@ -422,6 +422,31 @@ button:disabled {
   font-size: 40px;
   margin: 0 0 18px;
 }
+.character-modal > header > div {
+  flex: 1;
+  min-width: 0;
+}
+.character-sort-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 16px 18px 0;
+}
+.character-modal .character-sort-row h2 {
+  margin: 0;
+}
+.character-sort-row select {
+  max-width: 100%;
+  margin-left: auto;
+  padding: 8px 12px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
 .character-modal header > button {
   border: 0;
   background: transparent;
