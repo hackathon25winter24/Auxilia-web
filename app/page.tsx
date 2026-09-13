@@ -11,6 +11,7 @@ import {
 
 import { BattleScene } from "@/components/scenes/battle-scene";
 import { EntranceScene } from "@/components/scenes/entrance-scene";
+import { LoadingScene } from "@/components/scenes/loading-scene";
 import { ResultScene } from "@/components/scenes/result-scene";
 import { TitleScene } from "@/components/scenes/title-scene";
 import { request } from "@/lib/api";
@@ -666,6 +667,20 @@ export default function Home() {
         busy={busy}
         error={error}
         onReturn={returnToEntrance}
+      />
+    );
+  }
+
+  if (match && !match.started && !match.testOwnerId && guest) {
+    return (
+      <LoadingScene
+        key={match.matchId}
+        match={match}
+        definitions={definitions}
+        guestId={guest.id}
+        busy={busy}
+        error={error}
+        onPrepared={acceptMatch}
       />
     );
   }
