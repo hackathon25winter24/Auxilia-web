@@ -90,7 +90,9 @@ export function EntranceScene({
     return bRate - aRate || byID;
   });
   const waitingForOpponent =
-    !!match && !match.started && match.readyPlayerIds.includes(guest.id);
+    !!match &&
+    !match.started &&
+    (match.readyPlayerIds?.includes(guest.id) ?? false);
   const team = selected.flatMap((id) => {
     const character = definitions.find((item) => item.id === id);
     return character ? [character] : [];

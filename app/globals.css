@@ -2028,3 +2028,147 @@ input:focus-visible {
     font-size: 13px;
   }
 }
+
+.app:has(.result-layout) {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+}
+.result-layout {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  gap: clamp(20px, 3vw, 52px);
+  padding: 24px 3vw 30px;
+  background:
+    radial-gradient(ellipse at 25% 60%, #60316d55, transparent 65%), #17121d;
+}
+.result-winners {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.result-winning-team {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  flex: 1;
+}
+.result-winning-team figure {
+  margin: 0;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+  border-inline: 2px solid #cc8beb;
+  background: linear-gradient(155deg, #47344e, #1d1725);
+}
+.result-winning-team img {
+  display: block;
+  width: 100%;
+  height: clamp(280px, 57vh, 720px);
+  object-fit: cover;
+  object-position: center top;
+}
+.result-winning-team figcaption {
+  padding: 8px 4px;
+  text-align: center;
+  font-size: clamp(12px, 1.4vw, 20px);
+  font-weight: 800;
+  background: #191020cc;
+}
+.result-outcome {
+  padding: 14px 0 0;
+}
+.result-outcome h1 {
+  margin: 0;
+  font-size: clamp(60px, 9vw, 150px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 4px 24px #ab59d16b;
+}
+.result-outcome.lose h1 {
+  color: #d1bce2;
+}
+.result-outcome p {
+  margin: 10px 0 0;
+  font-size: clamp(16px, 2vw, 26px);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.result-sidebar {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+}
+.result-losers {
+  padding-top: 12px;
+}
+.result-losers .eyebrow {
+  margin-bottom: 18px;
+}
+.result-losers h2 {
+  margin: 0 0 14px;
+  font-size: clamp(18px, 2vw, 28px);
+  overflow-wrap: anywhere;
+}
+.result-losing-team {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.result-losing-team figure {
+  margin: 0;
+  min-width: 0;
+}
+.result-losing-team img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  object-fit: cover;
+  object-position: center top;
+  border: 2px solid #cc8beb;
+  background: #35243d;
+}
+.result-losing-team figcaption {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.result-return .primary {
+  width: 100%;
+  padding: 20px 12px;
+  border: 3px solid #d69cfa;
+  font-size: clamp(16px, 1.7vw, 24px);
+  box-shadow: 0 0 0 4px #302039;
+}
+@media (max-width: 640px) {
+  .result-layout {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+    gap: 24px;
+  }
+  .result-winning-team img {
+    height: 40vh;
+  }
+  .result-sidebar {
+    display: contents;
+  }
+  .result-losers {
+    grid-row: 1;
+    max-width: 270px;
+    justify-self: end;
+    width: 100%;
+  }
+  .result-return {
+    justify-self: end;
+    width: 100%;
+  }
+  .result-outcome h1 {
+    font-size: clamp(52px, 14vw, 90px);
+  }
+}

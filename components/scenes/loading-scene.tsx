@@ -26,7 +26,7 @@ export function LoadingScene({
 }: Props) {
   const prepare = useRef(onPrepared);
   prepare.current = onPrepared;
-  const prepared = match.readyPlayerIds.includes(guestId);
+  const prepared = match.readyPlayerIds?.includes(guestId) ?? false;
   useEffect(() => {
     if (prepared || definitions.length === 0) return;
     const timer = window.setTimeout(() => {

@@ -129,11 +129,13 @@ export default function Home() {
     );
     return () => clearInterval(timer);
   }, [guest?.queued, loadMe, token]);
-  const matchID = match?.matchId;
+  const matchID = guest?.matchId ?? match?.matchId;
   const matchFinished = match?.finished;
   useEffect(() => {
     if (!token || !matchID || matchFinished) return;
-    const timer = setInterval(() => loadMatch(matchID).catch(() => {}), 900);
+    const refresh = () => loadMatch(matchID).catch((e) => setError(e.message));
+    void refresh();
+    const timer = setInterval(refresh, 900);
     return () => clearInterval(timer);
   }, [loadMatch, matchID, matchFinished, token]);
   useEffect(() => {
@@ -660,10 +662,9 @@ export default function Home() {
     const winner = match.players.find((p) => p.id === match.winnerId);
     return (
       <ResultScene
-        winnerName={winner?.name}
+        match={match}
+        definitions={definitions}
         isWinner={winner?.id === guest?.id}
-        turn={match.turn}
-        revision={match.revision}
         busy={busy}
         error={error}
         onReturn={returnToEntrance}

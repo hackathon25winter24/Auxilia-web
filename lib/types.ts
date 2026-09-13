@@ -81,7 +81,7 @@ export type Match = {
   matchId: string;
   revision: number;
   started: boolean;
-  readyPlayerIds: string[];
+  readyPlayerIds?: string[] | null;
   players: [Player, Player];
   bases: [BaseState, BaseState];
   characters: Fighter[];
