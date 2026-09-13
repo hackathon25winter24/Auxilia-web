@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 
 import { BGMManager, SEManager } from "@/lib/audio";
 
@@ -31,14 +31,25 @@ export function AudioSettings() {
         type="button"
         className="settings-button"
         aria-label="音量設定を開く"
+        title="音量設定"
         onClick={openSettings}
       >
-        音量設定
+        <img
+          src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/UI/volume.png`}
+          alt=""
+          width={36}
+          height={36}
+        />
       </button>
       {open && (
         <div className="modal-backdrop settings-backdrop">
           <section
             className="settings-dialog"
+            style={
+              {
+                "--volume-art": `url("${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/UI/bgmBar.png")`,
+              } as CSSProperties
+            }
             role="dialog"
             aria-modal="true"
             aria-labelledby="settings-title"
@@ -56,27 +67,47 @@ export function AudioSettings() {
               <span>
                 BGM <b>{Math.round(bgmVolume * 100)}%</b>
               </span>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={Math.round(bgmVolume * 100)}
-                onChange={(event) =>
-                  changeBGM(Number(event.target.value) / 100)
+              <div
+                className="volume-slider"
+                style={
+                  {
+                    "--volume-hidden": `${100 - Math.round(bgmVolume * 100)}%`,
+                  } as CSSProperties
                 }
-              />
+              >
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={Math.round(bgmVolume * 100)}
+                  onChange={(event) =>
+                    changeBGM(Number(event.target.value) / 100)
+                  }
+                />
+              </div>
             </label>
             <label>
               <span>
                 SE <b>{Math.round(seVolume * 100)}%</b>
               </span>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={Math.round(seVolume * 100)}
-                onChange={(event) => changeSE(Number(event.target.value) / 100)}
-              />
+              <div
+                className="volume-slider"
+                style={
+                  {
+                    "--volume-hidden": `${100 - Math.round(seVolume * 100)}%`,
+                  } as CSSProperties
+                }
+              >
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={Math.round(seVolume * 100)}
+                  onChange={(event) =>
+                    changeSE(Number(event.target.value) / 100)
+                  }
+                />
+              </div>
             </label>
           </section>
         </div>

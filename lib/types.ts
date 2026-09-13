@@ -44,6 +44,8 @@ export type Definition = {
 
 export type Fighter = {
   usedSkills?: Record<string, number>;
+  combatStance?: boolean;
+  barrierTurn?: number;
   wriggling?: boolean;
   id: string;
   definitionId: string;
