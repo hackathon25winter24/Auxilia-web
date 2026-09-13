@@ -31,7 +31,7 @@ export function LoadingScene({
     if (prepared || definitions.length === 0) return;
     const timer = window.setTimeout(() => {
       void prepare.current();
-    }, 3000);
+    }, 5000);
     return () => window.clearTimeout(timer);
   }, [match.matchId, prepared, definitions.length]);
 

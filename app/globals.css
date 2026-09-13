@@ -2172,3 +2172,24 @@ input:focus-visible {
     font-size: clamp(52px, 14vw, 90px);
   }
 }
+
+.battle-finish-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+}
+.battle-victory-banner {
+  width: 100%;
+  padding: clamp(24px, 5vh, 60px) 5vw;
+  border-block: 3px solid #d69cfa;
+  background: linear-gradient(90deg, #17121de6, #513062f5, #17121de6);
+  color: #fff;
+  text-align: center;
+  font-size: clamp(28px, 5vw, 72px);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+  box-shadow: 0 0 50px #b871d655;
+}

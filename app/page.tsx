@@ -27,6 +27,27 @@ export default function Home() {
   const [guest, setGuest] = useState<Guest | null>(null);
   const [definitions, setDefinitions] = useState<Definition[]>([]);
   const [match, setMatch] = useState<Match | null>(null);
+  const [finishPresentation, setFinishPresentation] = useState<{
+    matchId: string;
+    stage: "victory" | "result";
+  } | null>(null);
+  useEffect(() => {
+    if (!match?.finished || match.testOwnerId) {
+      setFinishPresentation(null);
+      return;
+    }
+    const matchId = match.matchId;
+    const victoryTimer = window.setTimeout(() => {
+      setFinishPresentation({ matchId, stage: "victory" });
+    }, 1000);
+    const resultTimer = window.setTimeout(() => {
+      setFinishPresentation({ matchId, stage: "result" });
+    }, 3000);
+    return () => {
+      window.clearTimeout(victoryTimer);
+      window.clearTimeout(resultTimer);
+    };
+  }, [match?.matchId, match?.finished, match?.testOwnerId]);
   const [name, setName] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [editingSlot, setEditingSlot] = useState<number | null>(null);
@@ -646,7 +667,12 @@ export default function Home() {
     </div>
   );
 
-  if (match?.finished) {
+  if (
+    match?.finished &&
+    (match.testOwnerId ||
+      (finishPresentation?.matchId === match.matchId &&
+        finishPresentation.stage === "result"))
+  ) {
     if (match.testOwnerId)
       return (
         <main className="frame">
@@ -688,46 +714,66 @@ export default function Home() {
 
   if (match?.started && guest) {
     return (
-      <BattleScene
-        match={match}
-        guest={
-          match.testOwnerId === guest.id
-            ? { ...guest, id: match.turnPlayerId }
-            : guest
-        }
-        definitions={definitions}
-        inspectedFighter={inspectedFighter}
-        setInspectedFighter={setInspectedFighter}
-        showEffectGuide={showEffectGuide}
-        setShowEffectGuide={setShowEffectGuide}
-        active={active}
-        activeDefinition={activeDefinition}
-        selectedAttack={selectedAttack}
-        attackable={attackable}
-        remaining={remaining}
-        myTurn={!!myTurn}
-        busy={busy}
-        error={error}
-        displayedEvent={displayedEvent}
-        damageAnimations={damageAnimations}
-        actor={actor}
-        mode={mode}
-        attackIndex={attackIndex}
-        controllerPosition={controllerPosition}
-        controllerRef={controllerRef}
-        mobileDirectionPad={mobileDirectionPad}
-        portraitFor={portraitFor}
-        miniFor={miniFor}
-        selectActor={selectActor}
-        act={act}
-        surrender={surrender}
-        endTurn={endTurn}
-        setMode={setMode}
-        setAttackIndex={setAttackIndex}
-        beginControllerDrag={beginControllerDrag}
-        dragController={dragController}
-        endControllerDrag={endControllerDrag}
-      />
+      <>
+        <BattleScene
+          match={match}
+          guest={
+            match.testOwnerId === guest.id
+              ? { ...guest, id: match.turnPlayerId }
+              : guest
+          }
+          definitions={definitions}
+          inspectedFighter={inspectedFighter}
+          setInspectedFighter={setInspectedFighter}
+          showEffectGuide={showEffectGuide}
+          setShowEffectGuide={setShowEffectGuide}
+          active={active}
+          activeDefinition={activeDefinition}
+          selectedAttack={selectedAttack}
+          attackable={attackable}
+          remaining={remaining}
+          myTurn={!!myTurn}
+          busy={busy || match.finished}
+          error={error}
+          displayedEvent={displayedEvent}
+          damageAnimations={damageAnimations}
+          actor={actor}
+          mode={mode}
+          attackIndex={attackIndex}
+          controllerPosition={controllerPosition}
+          controllerRef={controllerRef}
+          mobileDirectionPad={mobileDirectionPad}
+          portraitFor={portraitFor}
+          miniFor={miniFor}
+          selectActor={selectActor}
+          act={act}
+          surrender={surrender}
+          endTurn={endTurn}
+          setMode={setMode}
+          setAttackIndex={setAttackIndex}
+          beginControllerDrag={beginControllerDrag}
+          dragController={dragController}
+          endControllerDrag={endControllerDrag}
+        />
+        {match.finished && !match.testOwnerId && (
+          <div
+            className="battle-finish-overlay"
+            role="status"
+            aria-live="polite"
+          >
+            {finishPresentation?.matchId === match.matchId &&
+              finishPresentation.stage === "victory" && (
+                <div className="battle-victory-banner">
+                  {
+                    match.players.find((player) => player.id === match.winnerId)
+                      ?.name
+                  }{" "}
+                  の勝利
+                </div>
+              )}
+          </div>
+        )}
+      </>
     );
   }
 
