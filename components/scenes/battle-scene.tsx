@@ -204,6 +204,7 @@ export function BattleScene({
               />
               <div>
                 <b>{f.name}</b>
+                {f.definitionId === "luis" && (<span>{f.combatStance ? "臨戦状態" : "支援状態"}</span>)}
                 {f.definitionId === "suima" && (
                   <span>{f.wriggling ? "くねくね状態" : "活動状態"}</span>
                 )}
@@ -534,7 +535,7 @@ export function BattleScene({
                                 }
                                 onClick={() => {
                                   if (
-                                    a.oncePerTurn &&
+                                    a.target === "ally" &&
                                     a.pattern.length === 1 &&
                                     a.pattern[0].x === 0 &&
                                     a.pattern[0].y === 0

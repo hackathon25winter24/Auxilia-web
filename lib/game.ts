@@ -5,7 +5,7 @@ export function definitionForFighter(
   fighter?: Fighter,
 ) {
   const definition = definitions.find((d) => d.id === fighter?.definitionId);
-  return definition && fighter?.wriggling && definition.alternateAttacks
+  return definition && (fighter?.wriggling || fighter?.combatStance) && definition.alternateAttacks
     ? { ...definition, attacks: definition.alternateAttacks }
     : definition;
 }
@@ -13,6 +13,8 @@ export function definitionForFighter(
 export const EFFECT_DESCRIPTIONS: Record<string, string> = {
   二日酔い:
     "攻撃力が20%低下し、移動・攻撃コストがそれぞれ5増加する。自分のターン終了時に解除される。",
+  免疫: "一度だけデバフの付与を無効にする。",
+  結界: "付与した次の手番に、攻撃を一度だけ無効化する。その手番終了後に消える。",
   威力上昇: "攻撃ダメージが25%上昇する。",
   俊足: "移動コストが2下がる。",
   俊敏化: "攻撃コストが2下がる。",
