@@ -5,7 +5,9 @@ export function definitionForFighter(
   fighter?: Fighter,
 ) {
   const definition = definitions.find((d) => d.id === fighter?.definitionId);
-  return definition && (fighter?.wriggling || fighter?.combatStance) && definition.alternateAttacks
+  return definition &&
+    (fighter?.wriggling || fighter?.combatStance) &&
+    definition.alternateAttacks
     ? { ...definition, attacks: definition.alternateAttacks }
     : definition;
 }

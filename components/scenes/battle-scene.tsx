@@ -204,7 +204,9 @@ export function BattleScene({
               />
               <div>
                 <b>{f.name}</b>
-                {f.definitionId === "luis" && (<span>{f.combatStance ? "臨戦状態" : "支援状態"}</span>)}
+                {f.definitionId === "louise" && (
+                  <span>{f.combatStance ? "臨戦状態" : "支援状態"}</span>
+                )}
                 {f.definitionId === "suima" && (
                   <span>{f.wriggling ? "くねくね状態" : "活動状態"}</span>
                 )}
@@ -723,6 +725,11 @@ export function BattleScene({
                 </article>
                 <div className="current-effects">
                   <h3>現在の状態</h3>
+                  {inspected?.definitionId === "louise" && (
+                    <article>
+                      <b>{inspected.combatStance ? "臨戦状態" : "支援状態"}</b>
+                    </article>
+                  )}
                   {inspected?.definitionId === "suima" && (
                     <article>
                       <b>{inspected.wriggling ? "くねくね状態" : "活動状態"}</b>
