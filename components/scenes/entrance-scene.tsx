@@ -91,6 +91,15 @@ export function EntranceScene({
   });
   const waitingForOpponent =
     !!match && !match.started && match.readyPlayerIds.includes(guest.id);
+  const team = selected.flatMap((id) => {
+    const character = definitions.find((item) => item.id === id);
+    return character ? [character] : [];
+  });
+  const totalHP = team.reduce((sum, character) => sum + character.maxHP, 0);
+  const totalMoveCost = team.reduce(
+    (sum, character) => sum + character.moveCost,
+    0,
+  );
   return (
     <Frame
       step="ENTRANCE"
@@ -105,20 +114,7 @@ export function EntranceScene({
         </button>
       }
     >
-      <section className="entrance-head">
-        <div>
-          <p className="eyebrow">WELCOME, {guest.name.toUpperCase()}</p>
-          <h1 className="small-h1">3人の部隊を編成</h1>
-        </div>
-        <div className={`status ${guest.queued ? "searching" : ""}`}>
-          {guest.matchId
-            ? "マッチングしました"
-            : guest.queued
-              ? "対戦相手を検索中"
-              : "キャラクターを選択"}
-        </div>
-      </section>
-      <section className="party-slots">
+      <section className="party-slots" aria-label="チーム編成">
         {Array.from({ length: 3 }, (_, index) => {
           const id = selected[index];
           const d = definitions.find((item) => item.id === id);
@@ -140,6 +136,16 @@ export function EntranceScene({
                   />
                   <div>
                     <h2>{d.name}</h2>
+                    <dl className="party-character-stats">
+                      <div>
+                        <dt>HP</dt>
+                        <dd>{d.maxHP}</dd>
+                      </div>
+                      <div>
+                        <dt>MOV</dt>
+                        <dd>{d.moveCost}</dd>
+                      </div>
+                    </dl>
                   </div>
                 </>
               ) : (
@@ -152,6 +158,24 @@ export function EntranceScene({
             </button>
           );
         })}
+      </section>
+      <section
+        className="team-totals"
+        aria-label="チームの合計ステータス"
+        aria-live="polite"
+      >
+        <div>
+          <span>
+            TEAM HP<small>合計体力</small>
+          </span>
+          <strong>{totalHP}</strong>
+        </div>
+        <div>
+          <span>
+            TEAM MOV<small>合計移動コスト</small>
+          </span>
+          <strong>{totalMoveCost}</strong>
+        </div>
       </section>
       <section className="match-bar">
         <div>

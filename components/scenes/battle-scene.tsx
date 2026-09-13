@@ -25,6 +25,29 @@ import type {
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
+function HPBar({ hp, maxHP }: { hp: number; maxHP: number }) {
+  const percent =
+    maxHP > 0 ? Math.min(100, Math.max(0, (hp / maxHP) * 100)) : 0;
+  return (
+    <span
+      className="hp-bar"
+      role="meter"
+      aria-label="HP"
+      aria-valuemin={0}
+      aria-valuemax={Math.max(1, maxHP)}
+      aria-valuenow={Math.min(Math.max(0, hp), Math.max(1, maxHP))}
+    >
+      <span
+        className="hp-bar-fill"
+        style={{
+          clipPath: `inset(0 ${100 - percent}% 0 0)`,
+          backgroundImage: `url("${BASE}/battle/HPBar.png")`,
+        }}
+      />
+    </span>
+  );
+}
+
 const ATTACK_TARGET_LABELS: Record<string, string> = {
   enemy: "敵",
   ally: "味方",
@@ -150,6 +173,8 @@ export function BattleScene({
   endControllerDrag,
 }: BattleSceneProps) {
   const [confirmingSurrender, setConfirmingSurrender] = useState(false);
+  const timeLeft =
+    match.phase === "turn_end" ? 0 : Math.min(120, Math.max(0, remaining));
   const inspected = match.characters.find((f) => f.id === inspectedFighter);
   const inspectedDefinition = definitionForFighter(definitions, inspected);
   const fighterCards = (player: Player, side: "left" | "right") => (
@@ -189,9 +214,7 @@ export function BattleScene({
                   <span className="effects">{f.effects.join(" · ")}</span>
                 )}
                 <span className="card-hint">技・パッシブ・状態を確認</span>
-                <i
-                  style={{ width: `${Math.max(0, (f.hp / f.maxHP) * 100)}%` }}
-                />
+                <HPBar hp={f.hp} maxHP={f.maxHP} />
               </div>
               <small>MOVE {d?.moveCost ?? "-"}</small>
             </button>
@@ -203,62 +226,82 @@ export function BattleScene({
     <Frame
       step={`${match.testOwnerId ? "TEST MODE" : "MATCH"} ${match.matchId.slice(-6).toUpperCase()}`}
     >
-      <section className="battle-head">
-        <div
-          className={`player-cost left ${match.players[0].id === guest.id ? "self" : ""}`}
-        >
-          <b>1P · {match.players[0].name}</b>
-          <span>COST {match.players[0].cost}/50</span>
-        </div>
-        <div className="turn-state">
-          <span>
-            TURN {match.turn} ·
-            {match.phase === "turn_end" ? " 処理中" : ` ${remaining}s`}
-          </span>
-          <h2>
-            {match.phase === "turn_end"
-              ? "TURN END PROCESSING"
-              : match.testOwnerId
-                ? `${match.turnPlayerId === match.players[0].id ? "1P" : "2P"} 操作中`
-                : myTurn
-                  ? "YOUR TURN"
-                  : "ENEMY TURN"}
-          </h2>
-        </div>
-        <div
-          className={`player-cost right ${match.players[1].id === guest.id ? "self" : ""}`}
-        >
-          <b>2P · {match.players[1].name}</b>
-          <span>COST {match.players[1].cost}/50</span>
-        </div>
-        <div className="battle-actions">
-          <button
-            className="effect-guide-button"
-            onClick={() => setShowEffectGuide(true)}
+      <div className="battle-status">
+        <section className="battle-head">
+          <div
+            className={`player-cost left ${match.players[0].id === guest.id ? "self" : ""}`}
           >
-            状態異常
-          </button>
-          <button
-            className="surrender"
-            disabled={busy}
-            onClick={() => {
-              if (match.testOwnerId) void surrender();
-              else setConfirmingSurrender(true);
+            <b>1P · {match.players[0].name}</b>
+            <span>COST {match.players[0].cost}/50</span>
+          </div>
+          <div className="turn-state">
+            <span>
+              TURN {match.turn} ·
+              {match.phase === "turn_end" ? " 処理中" : ` ${remaining}s`}
+            </span>
+            <h2>
+              {match.phase === "turn_end"
+                ? "TURN END PROCESSING"
+                : match.testOwnerId
+                  ? `${match.turnPlayerId === match.players[0].id ? "1P" : "2P"} 操作中`
+                  : myTurn
+                    ? "YOUR TURN"
+                    : "ENEMY TURN"}
+            </h2>
+          </div>
+          <div
+            className={`player-cost right ${match.players[1].id === guest.id ? "self" : ""}`}
+          >
+            <b>2P · {match.players[1].name}</b>
+            <span>COST {match.players[1].cost}/50</span>
+          </div>
+          <div className="battle-actions">
+            <button
+              className="surrender"
+              disabled={busy}
+              onClick={() => {
+                if (match.testOwnerId) void surrender();
+                else setConfirmingSurrender(true);
+              }}
+            >
+              {match.testOwnerId ? "終了" : "投降"}
+            </button>
+            <button
+              className="end-turn"
+              data-se="none"
+              disabled={!myTurn || busy}
+              onClick={endTurn}
+            >
+              ターン終了
+            </button>
+          </div>
+        </section>
+        <div
+          className="battle-time-bar"
+          role="meter"
+          aria-label="ターンの残り時間"
+          aria-valuemin={0}
+          aria-valuemax={120}
+          aria-valuenow={timeLeft}
+          aria-valuetext={
+            match.phase === "turn_end"
+              ? "ターン終了処理中"
+              : `残り${timeLeft}秒`
+          }
+        >
+          <div
+            className="battle-time-bar-fill"
+            style={{
+              backgroundImage: `url("${BASE}/battle/TimeBar.png")`,
+              clipPath: `inset(0 ${100 - (timeLeft / 120) * 100}% 0 0)`,
             }}
-          >
-            {match.testOwnerId ? "終了" : "投降"}
-          </button>
-          <button
-            className="end-turn"
-            data-se="none"
-            disabled={!myTurn || busy}
-            onClick={endTurn}
-          >
-            ターン終了
-          </button>
+          />
         </div>
-      </section>
-      <section className="battle-stage">
+      </div>
+      <section
+        className="battle-stage"
+        style={{ backgroundImage: `url("${BASE}/battle/Background.png")` }}
+      >
         {fighterCards(match.players[0], "left")}
         <div className="battle-center">
           <div className="base-durability">
@@ -268,13 +311,7 @@ export function BattleScene({
                 <b>
                   {base.hp}/{base.maxHP}
                 </b>
-                <i>
-                  <em
-                    style={{
-                      width: `${Math.max(0, (base.hp / base.maxHP) * 100)}%`,
-                    }}
-                  />
-                </i>
+                <HPBar hp={base.hp} maxHP={base.maxHP} />
               </div>
             ))}
           </div>
@@ -404,9 +441,6 @@ export function BattleScene({
                           width={2048}
                           height={2048}
                         />
-                        <em>
-                          {fighter.hp}/{fighter.maxHP}
-                        </em>
                       </>
                     )}
                   </button>
