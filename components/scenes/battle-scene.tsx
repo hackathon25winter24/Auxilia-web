@@ -381,7 +381,7 @@ export function BattleScene({
                   !active.wriggling &&
                   ((attackIndex === 0 &&
                     match.characters.some(
-                      (c) => c.definitionId === "shincho" && c.hp > 0,
+                      (c) => c.definitionId === "shicho" && c.hp > 0,
                     )) ||
                     (attackIndex === 2 &&
                       !!tileEffect &&
@@ -711,7 +711,7 @@ export function BattleScene({
                 <article className="passive-detail">
                   <span>PASSIVE</span>
                   <h3>{inspectedDefinition?.passiveName || "パッシブなし"}</h3>
-                  {inspectedDefinition?.id === "wellbulus" && (
+                  {inspectedDefinition?.id === "verbulus" && (
                     <p>
                       {inspected?.reviveUsed
                         ? "復活：使用済み"

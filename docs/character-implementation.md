@@ -84,7 +84,7 @@
 ```
 
 `ID` はAPI・保存済み試合・使用率集計のキーになります。表示名を変える場合も、既存IDを安易に変更しないでください。
-既存の `wellbulus` などの綴りも互換性のためそのまま扱います。
+英字表記はrules.mdに従い、内部IDは小文字に統一します。旧IDの `wellbulus`・`shincho` は `CanonicalCharacterID` で `verbulus`・`shicho` に読み替え、保存済み編成・試合・使用率の互換性を維持します。
 
 定義を追加すれば、通常は `GET /api/characters` と選択一覧にも自動で追加されます。
 フロントに別の固定キャラクター配列を作る必要はありません。
@@ -318,7 +318,7 @@ go test ./...
 | `characters_test.go` | キャラ数、基本数値、技の定義。新キャラ追加時は期待値表も追加する |
 | `character_actions_test.go` | 範囲、対象、追加効果の実戦処理 |
 | `rules_alignment_test.go` | パッシブ・特殊処理の仕様照合 |
-| `wellbulus_test.go` | 復活、解除、不変マス |
+| `verbulus_test.go` | 復活、解除、不変マス |
 | `kasuima_test.go` | 酒、二日酔い、押し戻しと着地 |
 | `suima_test.go` | 状態切り替え、範囲外追加効果、解除 |
 | `self_skill_test.go` | 自身技の効果、回数制限、失敗操作、再読み込み |
