@@ -513,13 +513,19 @@ export function BattleScene({
                           {mobileDirectionPad}
                         </>
                       ) : (
-                        <div className="attack-panel">
+                        <div
+                          className={`attack-panel ${attackIndex >= 0 ? "choosing-direction" : "choosing-skill"}`}
+                        >
                           <p className="attack-direction">
                             <span className="desktop-instruction">
-                              十字キー / WASDで攻撃方向を変更
+                              {attackIndex < 0
+                                ? "技を選択してください"
+                                : "方向選択：矢印キー / WASD → Enter または対象クリックで発動"}
                             </span>
                             <span className="mobile-instruction">
-                              方向をタップして攻撃方向を変更
+                              {attackIndex < 0
+                                ? "技を選択してください"
+                                : "方向を選び、範囲内の対象をタップして発動"}
                             </span>
                           </p>
                           {mobileDirectionPad}
@@ -535,23 +541,14 @@ export function BattleScene({
                                     active.usedSkills?.[a.name] === match.turn
                                   )
                                 }
-                                onClick={() => {
-                                  if (
-                                    a.target === "ally" &&
-                                    a.pattern.length === 1 &&
-                                    a.pattern[0].x === 0 &&
-                                    a.pattern[0].y === 0
-                                  ) {
-                                    void act(active.position, "attack", index);
-                                  } else setAttackIndex(index);
-                                }}
+                                onClick={() => setAttackIndex(index)}
                               >
                                 <b>{a.name}</b>
                                 {a.oncePerTurn && (
                                   <small>
                                     {active.usedSkills?.[a.name] === match.turn
                                       ? "使用済み"
-                                      : "1ターン1回・クリックで使用"}
+                                      : "1ターン1回"}
                                   </small>
                                 )}
                                 <span>
@@ -572,7 +569,9 @@ export function BattleScene({
             <b>{displayedEvent?.text ?? match.lastEvent.text}</b>
             <span>
               {mode === "attack" && active
-                ? "方向を選び、色の付いたマスを選択"
+                ? attackIndex < 0
+                  ? "技を選択"
+                  : "方向選択中：Enter または範囲内の対象クリックで発動"
                 : mode === "move" && active
                   ? "方向を選んで移動"
                   : "キャラクターを選択して操作"}
