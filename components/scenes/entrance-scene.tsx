@@ -15,6 +15,7 @@ import type { Definition, Guest, Match } from "@/lib/types";
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 type EntranceSceneProps = {
+  activeCount: number | null;
   guest: Guest;
   match: Match | null;
   definitions: Definition[];
@@ -33,6 +34,7 @@ type EntranceSceneProps = {
 };
 
 export function EntranceScene({
+  activeCount,
   guest,
   match,
   definitions,
@@ -106,14 +108,19 @@ export function EntranceScene({
     <Frame
       step="ENTRANCE"
       headerAction={
-        <button
-          className="header-title-back"
-          data-se="titleEntrance"
-          disabled={busy || !!guest.matchId}
-          onClick={returnToTitle}
-        >
-          タイトルへ戻る
-        </button>
+        <>
+          <span className="active-count" aria-label="アクティブプレイヤー数">
+            Active: {activeCount ?? "—"}人
+          </span>
+          <button
+            className="header-title-back"
+            data-se="titleEntrance"
+            disabled={busy || !!guest.matchId}
+            onClick={returnToTitle}
+          >
+            タイトルへ戻る
+          </button>
+        </>
       }
     >
       <section className="party-slots" aria-label="チーム編成">

@@ -2193,3 +2193,11 @@ input:focus-visible {
   overflow-wrap: anywhere;
   box-shadow: 0 0 50px #b871d655;
 }
+
+.brand-tools .active-count {
+  margin-left: 0;
+  white-space: nowrap;
+  font: 700 12px monospace;
+  letter-spacing: 0;
+  color: var(--text);
+}

@@ -48,6 +48,42 @@ export default function Home() {
       window.clearTimeout(resultTimer);
     };
   }, [match?.matchId, match?.finished, match?.testOwnerId]);
+  const [activeCount, setActiveCount] = useState<number | null>(null);
+  useEffect(() => {
+    if (!token || !guest?.id) {
+      setActiveCount(null);
+      return;
+    }
+    let disposed = false;
+    let pending = false;
+    const heartbeat = async () => {
+      if (pending) return;
+      pending = true;
+      try {
+        const result = await request<{ count: number }>(
+          "/api/presence/heartbeat",
+          { method: "POST", body: "{}" },
+          token,
+        );
+        if (!disposed) setActiveCount(result.count);
+      } catch {
+        if (!disposed) setActiveCount(null);
+      } finally {
+        pending = false;
+      }
+    };
+    void heartbeat();
+    const timer = window.setInterval(heartbeat, 20000);
+    const visible = () => {
+      if (document.visibilityState === "visible") void heartbeat();
+    };
+    document.addEventListener("visibilitychange", visible);
+    return () => {
+      disposed = true;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", visible);
+    };
+  }, [token, guest?.id]);
   const [name, setName] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [editingSlot, setEditingSlot] = useState<number | null>(null);
@@ -343,6 +379,7 @@ export default function Home() {
     try {
       if (guest.queued)
         await request<Guest>("/api/matchmaking", { method: "DELETE" }, token);
+      await request("/api/presence", { method: "DELETE" }, token);
       localStorage.removeItem("auxilia-token");
       setToken("");
       setGuest(null);
@@ -780,6 +817,7 @@ export default function Home() {
   if (guest) {
     return (
       <EntranceScene
+        activeCount={activeCount}
         guest={guest}
         match={match}
         definitions={definitions}
