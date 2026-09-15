@@ -917,12 +917,11 @@ button:disabled {
   height: 5px;
   background: var(--lime);
 }
-.fighter-cards small {
-  position: absolute;
-  right: 6px;
-  bottom: 9px;
-  color: #fff;
-  font: 700 9px monospace;
+.fighter-vitals {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  white-space: nowrap;
 }
 .fighter-cards .knocked-out {
   filter: grayscale(1);
@@ -2216,4 +2215,45 @@ input:focus-visible {
   background: var(--lime);
   color: var(--ink);
   outline: 2px solid #fff;
+}
+
+.battle-reference-backdrop.hover-preview,
+.battle-reference-backdrop.hover-preview * {
+  pointer-events: none;
+}
+.battle-reference-backdrop.hover-preview .battle-reference > header > button {
+  display: none;
+}
+
+.tile-inspection {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 40;
+  width: min(360px, calc(100vw - 32px));
+  padding: 16px;
+  border: 2px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 8px 30px #0008;
+}
+.tile-inspection header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.tile-inspection h2 {
+  font-size: 18px;
+  margin: 0;
+}
+.tile-inspection button {
+  background: transparent;
+  border: 0;
+  font-size: 26px;
+  cursor: pointer;
+}
+.tile-inspection p {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 8px 0 0;
 }

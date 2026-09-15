@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
   Dispatch,
   PointerEvent,
@@ -21,9 +21,18 @@ import type {
   Match,
   Player,
   Position,
+  TileEffect,
 } from "@/lib/types";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+const TILE_DESCRIPTIONS: Record<string, string> = {
+  地雷: "このマスに乗ったキャラは100ダメージを受け、地雷は消えます。月葉とベレニスは地雷のダメージを受けません。",
+  まきびし:
+    "このマスに乗ったキャラは10ダメージを受け、このマスからの移動コストが2増加します。月葉は影響を受けません。",
+  毒ガス:
+    "このマスに乗ったキャラは50%の確率で毒を受けます。自分のターン終了時にこのマスにいると毒を受けます。月葉はマスの影響を受けず、ダーナは毒を受けません。",
+  不変: "侵入できないマスです。上にいるキャラは移動できません（月葉を除く）。HPは170で、毎ターン終了時に50減少します。攻撃でも破壊できます。",
+};
 
 function HPBar({ hp, maxHP }: { hp: number; maxHP: number }) {
   const percent =
@@ -173,9 +182,27 @@ export function BattleScene({
   endControllerDrag,
 }: BattleSceneProps) {
   const [confirmingSurrender, setConfirmingSurrender] = useState(false);
+  const [inspectedTile, setInspectedTile] = useState<TileEffect | null>(null);
+  const [hoveredFighter, setHoveredFighter] = useState("");
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  function clearHover() {
+    if (hoverTimer.current !== null) clearTimeout(hoverTimer.current);
+    hoverTimer.current = null;
+    setHoveredFighter("");
+  }
+  useEffect(
+    () => () => {
+      if (hoverTimer.current !== null) clearTimeout(hoverTimer.current);
+    },
+    [],
+  );
   const timeLeft =
     match.phase === "turn_end" ? 0 : Math.min(120, Math.max(0, remaining));
-  const inspected = match.characters.find((f) => f.id === inspectedFighter);
+  const hoverPreview =
+    !inspectedFighter && !showEffectGuide && !!hoveredFighter;
+  const inspected = match.characters.find(
+    (f) => f.id === (inspectedFighter || hoveredFighter),
+  );
   const inspectedDefinition = definitionForFighter(definitions, inspected);
   const fighterCards = (player: Player, side: "left" | "right") => (
     <aside className={`fighter-cards ${side}`}>
@@ -188,7 +215,10 @@ export function BattleScene({
             <button
               key={f.id}
               className={`${f.hp <= 0 ? "knocked-out" : ""} ${active?.id === f.id ? "selected" : ""}`}
-              onClick={() => setInspectedFighter(f.id)}
+              onClick={() => {
+                clearHover();
+                setInspectedFighter(f.id);
+              }}
             >
               <CharacterImage
                 key={`${f.id}-${damageAnimations[f.id] ?? 0}`}
@@ -198,6 +228,15 @@ export function BattleScene({
                     : ""
                 }
                 src={portraitFor(f.definitionId)}
+                onMouseEnter={() => {
+                  clearHover();
+                  if (inspectedFighter || showEffectGuide) return;
+                  hoverTimer.current = setTimeout(() => {
+                    hoverTimer.current = null;
+                    setHoveredFighter(f.id);
+                  }, 1000);
+                }}
+                onMouseLeave={clearHover}
                 alt={f.name}
                 width={2048}
                 height={2048}
@@ -210,16 +249,18 @@ export function BattleScene({
                 {f.definitionId === "suima" && (
                   <span>{f.wriggling ? "くねくね状態" : "活動状態"}</span>
                 )}
-                <span>
-                  HP {f.hp}/{f.maxHP}
-                </span>
+                <div className="fighter-vitals">
+                  <span>
+                    HP {f.hp}/{f.maxHP}
+                  </span>
+                  <span>MOVE {d?.moveCost ?? "-"}</span>
+                </div>
                 {f.effects.length > 0 && (
                   <span className="effects">{f.effects.join(" · ")}</span>
                 )}
                 <span className="card-hint">技・パッシブ・状態を確認</span>
                 <HPBar hp={f.hp} maxHP={f.maxHP} />
               </div>
-              <small>MOVE {d?.moveCost ?? "-"}</small>
             </button>
           );
         })}
@@ -409,23 +450,21 @@ export function BattleScene({
                     style={{ backgroundImage: `url(${tile})` }}
                     data-se={validTarget ? "none" : undefined}
                     className={`${fighter ? "occupied" : ""} ${mine ? "mine" : "enemy"} ${playerOne ? "player-one" : ""} ${selectedCell ? "active" : ""} ${inAttackRange ? "attack-range" : ""} ${validTarget ? "attack-target" : ""} ${fighter && (!mine || !myTurn) && !validTarget ? "inert-fighter" : ""}`}
-                    onClick={() =>
+                    onClick={() => {
+                      setInspectedTile(tileEffect ?? null);
                       validTarget
                         ? void act(p, "attack")
                         : fighter && mine && myTurn
                           ? selectActor(fighter.id)
-                          : undefined
-                    }
+                          : undefined;
+                    }}
                   >
                     <small>
                       {p.x},{p.y}
                       {tileEffect ? ` · ${tileEffect.type}` : ""}
                     </small>
                     {immutable && (
-                      <span
-                        className="immutable-hp"
-                        title="侵入不可・毎ターン終了時HP−50・攻撃で破壊可能"
-                      >
+                      <span className="immutable-hp">
                         不変 HP {tileEffect.hp}/170
                       </span>
                     )}
@@ -499,7 +538,7 @@ export function BattleScene({
                         <>
                           {immutable && active.definitionId !== "tsukiha" && (
                             <p className="move-message">
-                              不変マスで移動不可。攻撃・回復は可能です。
+                              不変マスで移動不可。（攻撃・回復は可能）
                             </p>
                           )}
                           <p className="move-message">
@@ -520,7 +559,7 @@ export function BattleScene({
                             <span className="desktop-instruction">
                               {attackIndex < 0
                                 ? "技を選択してください"
-                                : "方向選択：矢印キー / WASD → Enter または対象クリックで発動"}
+                                : "矢印キー / WASD で方向選択、 Enter / 対象クリックで発動"}
                             </span>
                             <span className="mobile-instruction">
                               {attackIndex < 0
@@ -581,6 +620,30 @@ export function BattleScene({
         </div>
         {fighterCards(match.players[1], "right")}
       </section>
+      {inspectedTile && (
+        <aside className="tile-inspection" aria-label="マスの効果説明">
+          <header>
+            <h2>{inspectedTile.type}</h2>
+            <button
+              aria-label="マスの説明を閉じる"
+              onClick={() => setInspectedTile(null)}
+            >
+              ×
+            </button>
+          </header>
+          <p>
+            {TILE_DESCRIPTIONS[inspectedTile.type] ??
+              "効果の説明はありません。"}
+          </p>
+          <p>
+            設置者：
+            {match.players.find((p) => p.id === inspectedTile.ownerId)?.name ??
+              "不明"}
+            {match.players.some((p) => p.id === inspectedTile.ownerId) &&
+              `（${match.players.findIndex((p) => p.id === inspectedTile.ownerId) + 1}P）`}
+          </p>
+        </aside>
+      )}
       {confirmingSurrender && (
         <div className="modal-backdrop surrender-confirm-backdrop">
           <section
@@ -617,11 +680,13 @@ export function BattleScene({
         </div>
       )}
       {(inspected || showEffectGuide) && (
-        <div className="modal-backdrop battle-reference-backdrop">
+        <div
+          className={`modal-backdrop battle-reference-backdrop ${hoverPreview ? "hover-preview" : ""}`}
+        >
           <section
             className="battle-reference"
-            role="dialog"
-            aria-modal="true"
+            role={hoverPreview ? "tooltip" : "dialog"}
+            aria-modal={hoverPreview ? undefined : true}
             aria-label={
               showEffectGuide ? "状態異常一覧" : `${inspected?.name}の詳細`
             }
@@ -677,31 +742,29 @@ export function BattleScene({
                         {attack.description && <p>{attack.description}</p>}
                         {attack.effect && (
                           <p>
-                            追加効果：
-                            {EFFECT_DESCRIPTIONS[attack.effect] ??
-                              attack.effect}
-                            {attack.effectChance
-                              ? `（発生率 ${attack.effectChance}%）`
-                              : ""}
+                            対象は{attack.effectChance ?? 0}%の確率で
+                            {attack.effect}を受ける。
+                            {EFFECT_DESCRIPTIONS[attack.effect] ?? ""}
                           </p>
                         )}
                         {attack.tile && <p>設置マス：{attack.tile}</p>}
                         {attack.allyEffect && (
                           <p>
-                            範囲内の自身以外の味方に{attack.allyEffect}
-                            を付与します。
+                            範囲内の自身以外の味方は{attack.allyEffect}
+                            を受ける。
+                            {EFFECT_DESCRIPTIONS[attack.allyEffect] ?? ""}
                           </p>
                         )}
                         {attack.tile === "不変" && (
                           <p>
-                            前方1マスにHP170の不変マスを設置。キャラの足元にも設置でき、移動を封じます。毎ターン終了時にHPが50減り、攻撃でも破壊できます。
+                            前方1マスにHP170の不変マスを設置し移動を封じる。攻撃でも破壊可能。キャラの足元にも設置可。
                           </p>
                         )}
                         {attack.clearDebuffs && (
-                          <p>対象のデバフを解除します。</p>
+                          <p>対象のデバフを解除する。</p>
                         )}
                         {attack.clearBuffs && (
-                          <p>敵の威力上昇・俊足・俊敏化を解除します。</p>
+                          <p>敵の威力上昇・俊足・俊敏化を解除する。</p>
                         )}
                       </article>
                     )) ?? <p>技の情報はありません。</p>}
