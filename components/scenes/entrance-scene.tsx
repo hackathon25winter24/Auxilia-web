@@ -344,7 +344,7 @@ export function EntranceScene({
                   </div>
                   <div className="usage-stats">
                     <small>
-                      使用率{" "}
+                      今週の使用率{" "}
                       <b>
                         {(d.totalPickCount > 0
                           ? (d.usageCount / d.totalPickCount) * 100
@@ -354,7 +354,7 @@ export function EntranceScene({
                       </b>
                     </small>
                     <small>
-                      使用数 <b>{d.usageCount}</b>
+                      今週の使用数 <b>{d.usageCount}</b>
                     </small>
                   </div>
                   <article className="passive-summary">

@@ -2201,3 +2201,19 @@ input:focus-visible {
   letter-spacing: 0;
   color: var(--text);
 }
+
+.choosing-direction .mobile-direction-pad {
+  display: grid;
+}
+.choosing-skill .mobile-direction-pad {
+  display: none;
+}
+.choosing-direction .attack-direction {
+  color: var(--lime);
+  font-weight: 800;
+}
+.mobile-direction-pad button[aria-pressed="true"] {
+  background: var(--lime);
+  color: var(--ink);
+  outline: 2px solid #fff;
+}

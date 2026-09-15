@@ -90,7 +90,7 @@ export default function Home() {
   const [actor, setActor] = useState("");
   const [actorTurn, setActorTurn] = useState(0);
   const [mode, setMode] = useState<"move" | "attack">("move");
-  const [attackIndex, setAttackIndex] = useState(0);
+  const [attackIndex, setAttackIndex] = useState(-1);
   const [attackDirection, setAttackDirection] = useState<Position>({
     x: 1,
     y: 0,
@@ -122,6 +122,19 @@ export default function Home() {
     setDefinitions(items);
     return items;
   }, []);
+  useEffect(() => {
+    if (!guest || match?.started) return;
+    const refresh = () => {
+      void loadDefinitions().catch(() => {});
+    };
+    refresh();
+    const timer = window.setInterval(refresh, 60000);
+    window.addEventListener("focus", refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [guest?.id, match?.started, loadDefinitions]);
   const loadMe = useCallback(async (t: string) => {
     const me = await request<Guest>("/api/me", {}, t);
     setGuest(me);
@@ -460,7 +473,7 @@ export default function Home() {
         syncMatch(updated);
         if (actionMode === "attack") {
           setMode("move");
-          setAttackIndex(0);
+          setAttackIndex(-1);
         }
       } catch (e) {
         setError((e as Error).message);
@@ -507,10 +520,11 @@ export default function Home() {
   const inputDirection = useCallback(
     (dx: number, dy: number) => {
       if (!active || !myTurn || busy) return;
-      if (mode === "attack") setAttackDirection({ x: dx, y: dy });
-      else moveBy(dx, dy);
+      if (mode === "attack") {
+        if (attackIndex >= 0) setAttackDirection({ x: dx, y: dy });
+      } else moveBy(dx, dy);
     },
-    [active, busy, mode, moveBy, myTurn],
+    [active, attackIndex, busy, mode, moveBy, myTurn],
   );
   useEffect(() => {
     if (!match || match.finished || !active) return;
@@ -527,6 +541,19 @@ export default function Home() {
         setMode((current) => (current === "move" ? "attack" : "move"));
         return;
       }
+      if (key === "enter" && mode === "attack") {
+        event.preventDefault();
+        if (event.repeat || !myTurn || busy || attackIndex < 0) return;
+        const target = document.querySelector<HTMLButtonElement>(
+          ".board .attack-target:not(:disabled)",
+        );
+        if (target) target.click();
+        else
+          setError(
+            "この方向には有効な対象がありません。方向を選び直してください。",
+          );
+        return;
+      }
       const delta = KEY_DIRECTIONS[key];
       if (!delta) return;
       event.preventDefault();
@@ -534,7 +561,7 @@ export default function Home() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [active, busy, inputDirection, match, myTurn]);
+  }, [active, attackIndex, busy, inputDirection, match, mode, myTurn]);
   async function endTurn() {
     if (!match) return;
     setBusy(true);
@@ -609,7 +636,7 @@ export default function Home() {
       resetEvents();
       setActor("");
       setMode("move");
-      setAttackIndex(0);
+      setAttackIndex(-1);
       void loadDefinitions().catch(() => {});
     } catch (e) {
       setError((e as Error).message);
@@ -668,6 +695,12 @@ export default function Home() {
       <button
         type="button"
         className="up"
+        aria-pressed={
+          mode === "attack" &&
+          attackIndex >= 0 &&
+          attackDirection.x === 0 &&
+          attackDirection.y === 1
+        }
         aria-label="上"
         disabled={busy || !myTurn}
         onClick={() => inputDirection(0, 1)}
@@ -677,6 +710,12 @@ export default function Home() {
       <button
         type="button"
         className="left"
+        aria-pressed={
+          mode === "attack" &&
+          attackIndex >= 0 &&
+          attackDirection.x === -1 &&
+          attackDirection.y === 0
+        }
         aria-label="左"
         disabled={busy || !myTurn}
         onClick={() => inputDirection(-1, 0)}
@@ -686,6 +725,12 @@ export default function Home() {
       <button
         type="button"
         className="right"
+        aria-pressed={
+          mode === "attack" &&
+          attackIndex >= 0 &&
+          attackDirection.x === 1 &&
+          attackDirection.y === 0
+        }
         aria-label="右"
         disabled={busy || !myTurn}
         onClick={() => inputDirection(1, 0)}
@@ -695,6 +740,12 @@ export default function Home() {
       <button
         type="button"
         className="down"
+        aria-pressed={
+          mode === "attack" &&
+          attackIndex >= 0 &&
+          attackDirection.x === 0 &&
+          attackDirection.y === -1
+        }
         aria-label="下"
         disabled={busy || !myTurn}
         onClick={() => inputDirection(0, -1)}
