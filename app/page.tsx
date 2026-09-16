@@ -91,6 +91,7 @@ export default function Home() {
   const [actorTurn, setActorTurn] = useState(0);
   const [mode, setMode] = useState<"move" | "attack">("move");
   const [attackIndex, setAttackIndex] = useState(-1);
+  const lastAttacks = useRef<Record<string, string>>({});
   const [attackDirection, setAttackDirection] = useState<Position>({
     x: 1,
     y: 0,
@@ -472,6 +473,11 @@ export default function Home() {
         );
         syncMatch(updated);
         if (actionMode === "attack") {
+          const fighter = match.characters.find((item) => item.id === actor);
+          const usedAttack = definitionForFighter(definitions, fighter)
+            ?.attacks[requestedAttackIndex];
+          if (usedAttack)
+            lastAttacks.current[`${match.matchId}:${actor}`] = usedAttack.name;
           setMode("move");
           setAttackIndex(-1);
         }
@@ -486,6 +492,7 @@ export default function Home() {
       actor,
       attackDirection,
       attackIndex,
+      definitions,
       busy,
       loadMatch,
       match,
@@ -655,6 +662,16 @@ export default function Home() {
     setActor(id);
     setActorTurn(id ? (match?.turn ?? 0) : 0);
     const fighter = match?.characters.find((item) => item.id === id);
+    const previousAttack = match
+      ? lastAttacks.current[`${match.matchId}:${id}`]
+      : undefined;
+    const restoredIndex = previousAttack
+      ? (definitionForFighter(definitions, fighter)?.attacks.findIndex(
+          (attack) => attack.name === previousAttack,
+        ) ?? -1)
+      : -1;
+    setAttackIndex(restoredIndex);
+    setMode(restoredIndex >= 0 ? "attack" : "move");
     setAttackDirection({
       x: fighter?.ownerId === match?.players[1].id ? -1 : 1,
       y: 0,
