@@ -8,6 +8,7 @@ import {
   type SetStateAction,
 } from "react";
 
+import { EXCLUDED_CHARACTER_IDS } from "@/lib/character-selection";
 import { Frame } from "@/components/frame";
 import { CharacterImage } from "@/components/character-image";
 import type { Definition, Guest, Match } from "@/lib/types";
@@ -126,6 +127,7 @@ export function EntranceScene({
       <section className="party-slots" aria-label="チーム編成">
         {Array.from({ length: 3 }, (_, index) => {
           const id = selected[index];
+
           const d = definitions.find((item) => item.id === id);
           return (
             <button
@@ -321,50 +323,55 @@ export function EntranceScene({
               </button>
             </header>
             <div className="roster">
-              {sortedDefinitions.map((d) => (
-                <button
-                  key={d.id}
-                  disabled={selected.includes(d.id)}
-                  onClick={() => chooseCharacter(d.id)}
-                >
-                  <CharacterImage
-                    src={`${BASE}/characters/${d.portrait}`}
-                    alt={d.name}
-                    width={2048}
-                    height={2048}
-                  />
-                  <h3>{d.name}</h3>
-                  <p>
-                    HP {d.maxHP} / 移動コスト {d.moveCost}
-                  </p>
-                  <div>
-                    {d.attacks.map((a) => (
-                      <span key={a.name}>{a.name}</span>
-                    ))}
-                  </div>
-                  <div className="usage-stats">
-                    <small>
-                      今週の使用率{" "}
-                      <b>
-                        {(d.totalPickCount > 0
-                          ? (d.usageCount / d.totalPickCount) * 100
-                          : 0
-                        ).toFixed(1)}
-                        %
-                      </b>
-                    </small>
-                    <small>
-                      今週の使用数 <b>{d.usageCount}</b>
-                    </small>
-                  </div>
-                  <article className="passive-summary">
-                    <b>PASSIVE · {d.passiveName || "なし"}</b>
+              {sortedDefinitions.map((d) => {
+                if (EXCLUDED_CHARACTER_IDS.has(d.id)) {
+                  return null;
+                }
+                return (
+                  <button
+                    key={d.id}
+                    disabled={selected.includes(d.id)}
+                    onClick={() => chooseCharacter(d.id)}
+                  >
+                    <CharacterImage
+                      src={`${BASE}/characters/${d.portrait}`}
+                      alt={d.name}
+                      width={2048}
+                      height={2048}
+                    />
+                    <h3>{d.name}</h3>
                     <p>
-                      {d.passiveDescription || "パッシブスキルはありません。"}
+                      HP {d.maxHP} / 移動コスト {d.moveCost}
                     </p>
-                  </article>
-                </button>
-              ))}
+                    <div>
+                      {d.attacks.map((a) => (
+                        <span key={a.name}>{a.name}</span>
+                      ))}
+                    </div>
+                    <div className="usage-stats">
+                      <small>
+                        今週の使用率{" "}
+                        <b>
+                          {(d.totalPickCount > 0
+                            ? (d.usageCount / d.totalPickCount) * 100
+                            : 0
+                          ).toFixed(1)}
+                          %
+                        </b>
+                      </small>
+                      <small>
+                        今週の使用数 <b>{d.usageCount}</b>
+                      </small>
+                    </div>
+                    <article className="passive-summary">
+                      <b>PASSIVE · {d.passiveName || "なし"}</b>
+                      <p>
+                        {d.passiveDescription || "パッシブスキルはありません。"}
+                      </p>
+                    </article>
+                  </button>
+                );
+              })}
             </div>
             {selected[editingSlot] && (
               <button

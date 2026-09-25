@@ -10,6 +10,10 @@ import {
 } from "react";
 
 import { BattleScene } from "@/components/scenes/battle-scene";
+import {
+  EXCLUDED_CHARACTER_IDS,
+  clearExcludedCharacters,
+} from "@/lib/character-selection";
 import { EntranceScene } from "@/components/scenes/entrance-scene";
 import { LoadingScene } from "@/components/scenes/loading-scene";
 import { ResultScene } from "@/components/scenes/result-scene";
@@ -139,7 +143,7 @@ export default function Home() {
   const loadMe = useCallback(async (t: string) => {
     const me = await request<Guest>("/api/me", {}, t);
     setGuest(me);
-    setSelected(me.selection);
+    setSelected(clearExcludedCharacters(me.selection));
     return me;
   }, []);
   const syncMatch = useCallback(
@@ -336,6 +340,7 @@ export default function Home() {
     }
   }
   function chooseCharacter(id: string) {
+    if (EXCLUDED_CHARACTER_IDS.has(id)) return;
     if (editingSlot === null || selected.includes(id)) return;
     const next = [...selected];
     next[editingSlot] = id;
@@ -352,9 +357,14 @@ export default function Home() {
     setEditingSlot(null);
   }
   async function saveSelection() {
+    const allowed = clearExcludedCharacters(selected);
+    if (allowed.length !== 3 || allowed.some((id) => !id)) {
+      setSelected(allowed);
+      throw new Error("使用可能なキャラクターを3体選択してください");
+    }
     const next = await request<Guest>(
       "/api/me/selection",
-      { method: "PUT", body: JSON.stringify({ characterIds: selected }) },
+      { method: "PUT", body: JSON.stringify({ characterIds: allowed }) },
       token,
     );
     setGuest(next);
@@ -636,7 +646,7 @@ export default function Home() {
         token,
       );
       setGuest(updated);
-      setSelected(updated.selection);
+      setSelected(clearExcludedCharacters(updated.selection));
       setMatch(null);
       previousMatchRef.current = null;
       setDamageAnimations({});
