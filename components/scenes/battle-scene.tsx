@@ -26,12 +26,12 @@ import type {
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const TILE_DESCRIPTIONS: Record<string, string> = {
-  地雷: "このマスに乗ったキャラは100ダメージを受け、地雷は消えます。月葉とベレニスは地雷のダメージを受けません。",
+  地雷: "地雷に乗ったキャラは100ダメージを受け、地雷は消える。",
   まきびし:
-    "このマスに乗ったキャラは10ダメージを受け、このマスからの移動コストが2増加します。月葉は影響を受けません。",
+    "まきびしに乗ったキャラは10ダメージを受ける。まきびしから移動する際、移動コストが2増加する。",
   毒ガス:
-    "このマスに乗ったキャラは50%の確率で毒を受けます。自分のターン終了時にこのマスにいると毒を受けます。月葉はマスの影響を受けず、ダーナは毒を受けません。",
-  不変: "侵入できないマスです。上にいるキャラは移動できません（月葉を除く）。HPは170で、毎ターン終了時に50減少します。攻撃でも破壊できます。",
+    "毒ガスに乗ったキャラは50%の確率で毒を受ける。自分のターン終了時に毒ガスに乗っているキャラは毒を受ける。",
+  不変: "不変マスには侵入できず、乗っているキャラは移動できない。HPを持ち、毎ターン終了時に50減少。このHPはキャラの攻撃でも減少する。HPがなくなると消える。",
 };
 
 function HPBar({ hp, maxHP }: { hp: number; maxHP: number }) {
@@ -258,7 +258,7 @@ export function BattleScene({
                 {f.effects.length > 0 && (
                   <span className="effects">{f.effects.join(" · ")}</span>
                 )}
-                <span className="card-hint">技・パッシブ・状態を確認</span>
+                <span className="card-hint">ステータス・状態を確認</span>
                 <HPBar hp={f.hp} maxHP={f.maxHP} />
               </div>
             </button>
@@ -510,7 +510,7 @@ export function BattleScene({
                       >
                         <b>
                           {active.name}
-                          <small>↕ このバーをドラッグして移動</small>
+                          <small>このタブをドラッグして移動</small>
                         </b>
                         <button
                           aria-label="閉じる"
@@ -538,7 +538,7 @@ export function BattleScene({
                         <>
                           {immutable && active.definitionId !== "tsukiha" && (
                             <p className="move-message">
-                              不変マスで移動不可。（攻撃・回復は可能）
+                              不変マスにいるため移動不可。（攻撃・回復は可能）
                             </p>
                           )}
                           <p className="move-message">
@@ -558,12 +558,12 @@ export function BattleScene({
                           <p className="attack-direction">
                             <span className="desktop-instruction">
                               {attackIndex < 0
-                                ? "技を選択してください"
+                                ? "攻撃を選択"
                                 : "矢印キー / WASD で方向選択、 Enter / 対象クリックで発動"}
                             </span>
                             <span className="mobile-instruction">
                               {attackIndex < 0
-                                ? "技を選択してください"
+                                ? "攻撃を選択"
                                 : "方向を選び、範囲内の対象をタップして発動"}
                             </span>
                           </p>
@@ -655,7 +655,7 @@ export function BattleScene({
           >
             <p className="eyebrow">SURRENDER</p>
             <h2 id="surrender-confirm-title">投降しますか？</h2>
-            <p id="surrender-confirm-description">この試合は敗北になります。</p>
+            <p id="surrender-confirm-description">投降した場合、この試合は敗北になります。</p>
             <div>
               <button
                 className="secondary"
